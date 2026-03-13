@@ -390,7 +390,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                             className="w-20 bg-white border border-gray-200 rounded-lg px-2 py-2.5 text-sm text-gray-700 text-center focus:border-orange-400 focus:outline-none" />
                         )}
 
-                        {/* Team selector — predefined or freeform */}
+                        {/* Team selector — only show when teams exist */}
                         {victoryType === "team_winner" && activeTeams && (
                           <div className="flex gap-1">
                             {activeTeams.map((t) => (
@@ -404,7 +404,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                           </div>
                         )}
 
-                        {victoryType === "team_winner" && !activeTeams && (
+                        {victoryType === "team_winner" && !activeTeams && !activeFormat && (
                           <input type="text" value={p.team} onChange={(e) => updateParticipant(i, "team", e.target.value)}
                             placeholder="Equipo"
                             className="w-24 bg-white border border-gray-200 rounded-lg px-2 py-2.5 text-sm text-gray-700 focus:border-orange-400 focus:outline-none" />
