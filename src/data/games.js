@@ -468,7 +468,7 @@ const _games = [
     id: "vantage",
     tipo: "Juego Base",
     nombre: "Vantage",
-    duracion: "120-180 mins",
+    duracion: "240+ mins",
     minJugadores: 1,
     maxJugadores: 6,
     jugadoresDisplay: "1-6",
