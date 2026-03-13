@@ -588,7 +588,7 @@ const _games = [
     id: "death-star",
     tipo: "Juego Base",
     nombre: "Star Wars: Escape from Death Star",
-    duracion: "20 mins",
+    duracion: "30 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
