@@ -199,9 +199,9 @@ function App() {
     <div className="min-h-screen bg-[#f8f9fa]">
       {/* Header */}
       <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "bg-white/70 backdrop-blur-md border-b border-gray-100 shadow-sm" : "bg-transparent border-b border-transparent"}`}>
-        <div className="max-w-[90rem] mx-auto px-5 py-3">
+        <div className="max-w-[90rem] mx-auto px-3 sm:px-5 py-2 sm:py-3">
           {/* Search + Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex-1 relative">
               <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
@@ -209,7 +209,7 @@ function App() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar"
-                className="w-full max-w-md bg-gray-200/70 rounded-full pl-11 pr-5 py-3 text-sm text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-orange-300 focus:outline-none transition-all"
+                className="w-full sm:max-w-md bg-gray-200/70 rounded-full pl-11 pr-5 py-2.5 sm:py-3 text-sm text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-orange-300 focus:outline-none transition-all"
               />
             </div>
             <div className="flex items-center gap-1.5">
@@ -236,7 +236,7 @@ function App() {
           </div>
 
           {/* Filters */}
-          <div className="flex items-center gap-x-5 mt-3 pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-x-3 sm:gap-x-5 mt-3 pt-3 border-t border-gray-100 overflow-x-auto scrollbar-hide pb-1 -mb-1">
             {/* Owner avatars */}
             <div className="flex items-center gap-2 shrink-0">
               <UserCircle size={15} className="text-gray-400 shrink-0" />
@@ -339,8 +339,8 @@ function App() {
       </header>
 
       {/* Stats */}
-      <div className="max-w-[90rem] mx-auto px-5 py-3">
-        <div className="flex items-center gap-4 text-xs text-gray-400 tracking-wide uppercase">
+      <div className="max-w-[90rem] mx-auto px-3 sm:px-5 py-2 sm:py-3">
+        <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-gray-400 tracking-wide uppercase">
           <span>
             {filteredGames.length === baseGames.length
               ? `${baseGames.length} juegos`
@@ -354,14 +354,14 @@ function App() {
       </div>
 
       {/* Grid */}
-      <main className="max-w-[90rem] mx-auto px-5 pb-10">
+      <main className="max-w-[90rem] mx-auto px-3 sm:px-5 pb-10">
         {filteredGames.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-5xl mb-4 opacity-30">🎲</p>
             <p className="text-lg text-gray-400">No se encontraron juegos</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
             {filteredGames.map((game) => (
               <GameCard
                 key={game.id}

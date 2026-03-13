@@ -27,10 +27,10 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
   const parent = game.parentId ? allGames.find((g) => g.id === game.parentId) : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/30 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {/* Cover */}
-        <div className="relative bg-gray-50 p-8 flex justify-center rounded-t-2xl">
+        <div className="relative bg-gray-50 p-5 sm:p-8 flex justify-center rounded-t-2xl">
           <button onClick={onClose} className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white text-gray-500 transition-colors cursor-pointer z-10 shadow-sm">
             <X size={18} />
           </button>
@@ -38,7 +38,7 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
             <img
               src={game.imageUrl}
               alt={game.nombre}
-              className="max-h-72 w-auto rounded-lg block"
+              className="max-h-48 sm:max-h-72 w-auto rounded-lg block"
               style={{ boxShadow: "4px 6px 20px rgba(0,0,0,0.15), 2px 3px 8px rgba(0,0,0,0.08)" }}
             />
           ) : (
@@ -50,7 +50,7 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-xl font-bold text-gray-900">{game.nombre}</h2>
             {category && (
@@ -115,7 +115,7 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
               <h4 className="text-[10px] font-semibold text-gray-400 mb-3 uppercase tracking-wider">
                 Expansiones y Ampliaciones ({expansions.length})
               </h4>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {expansions.map((exp) => (
                   <div key={exp.id} className="bg-gray-50 rounded-xl p-3 flex flex-col items-center text-center">
                     {exp.imageUrl ? (
