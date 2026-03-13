@@ -502,9 +502,6 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                                 </button>
                               );
                             })}
-                                </button>
-                              );
-                            })}
                           </div>
                         )}
 
