@@ -115,7 +115,7 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
               <h4 className="text-[10px] font-semibold text-gray-400 mb-3 uppercase tracking-wider">
                 Expansiones y Ampliaciones ({expansions.length})
               </h4>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {expansions.map((exp) => (
                   <div key={exp.id} className="bg-gray-50 rounded-xl p-3 flex flex-col items-center text-center">
                     {exp.imageUrl ? (

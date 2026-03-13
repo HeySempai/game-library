@@ -65,7 +65,7 @@ export default function GameCard({ game, allGames, expansions, category, onClick
               {category}
             </span>
           )}
-          <h3 className="font-semibold text-sm text-gray-900 truncate leading-snug">
+          <h3 className="font-semibold text-xs sm:text-sm text-gray-900 truncate leading-snug">
             {game.nombre}
           </h3>
           <p className="text-xs text-gray-400 mt-0.5 truncate">{game.developer}</p>

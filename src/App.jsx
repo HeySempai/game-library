@@ -361,7 +361,7 @@ function App() {
             <p className="text-lg text-gray-400">No se encontraron juegos</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
             {filteredGames.map((game) => (
               <GameCard
                 key={game.id}
