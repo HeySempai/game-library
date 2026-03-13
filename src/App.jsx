@@ -300,6 +300,9 @@ function App() {
               <button onClick={() => setShowLeaderboard(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Leaderboard">
                 <Trophy size={18} />
               </button>
+              <button onClick={() => setShowHistory(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Historial">
+                <History size={18} />
+              </button>
               <button onClick={() => setShowSettings(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Configuración">
                 <Settings size={18} />
               </button>
