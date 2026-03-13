@@ -69,5 +69,9 @@ export const imageMap = {
   "santorini": `${S}/santorini.webp`,
   "sequence": "https://target.scene7.com/is/image/Target/GUEST_8a7a9324-7775-46a5-bad9-4f84ac58aa3c",
   "got-base": `${S}/game-of-thrones-board-game.webp`,
+  "got-mod": `${S}/game-of-thrones-mother-of-dragons.webp`,
+  "saboteur-2": `${S}/saboteur-2.png`,
+  "h2s-berserkers": `${S}/here-to-slay-berserkers-necromancers.png`,
+  "boss-monster-tools": `${S}/boss-monster-tools-of-hero-kind.webp`,
   "catan-dice": "https://www.miniaturemarket.com/media/bc/be/1f/1752260169/cn3120.jpg",
 };

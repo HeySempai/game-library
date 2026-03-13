@@ -706,6 +706,18 @@ const _games = [
     parentId: "h2s",
   },
   {
+    id: "h2s-berserkers",
+    tipo: "Expansion",
+    nombre: "Berserkers & Necromancers",
+    duracion: "30-60 mins",
+    minJugadores: null,
+    maxJugadores: null,
+    jugadoresDisplay: "= Base",
+    developer: "UNSTABLE GAMES",
+    owners: ["Adrian Garza"],
+    parentId: "h2s",
+  },
+  {
     id: "the-mind",
     tipo: "Juego Base",
     nombre: "The Mind",
