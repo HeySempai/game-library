@@ -531,9 +531,9 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                               const countInTeam = participants.filter((pp) => pp.playerName && pp.team === t.name).length;
                               const isCurrentTeam = p.team === t.name;
                               const atMax = t.max && countInTeam >= t.max && !isCurrentTeam;
-                              const iconMap = { Swords, Crown, Star, Shield };
-                              const IconComp = t.icon && t.icon !== "SamuraiHelmet" ? iconMap[t.icon] : null;
-                              const isSamurai = t.icon === "SamuraiHelmet";
+                              const iconMap = { Swords, Crown };
+                              const IconComp = t.icon && iconMap[t.icon] ? iconMap[t.icon] : null;
+                              const isCustomIcon = t.icon === "Kabuto" || t.icon === "Shuriken";
                               return (
                                 <button key={t.name} type="button"
                                   onClick={() => !atMax && updateParticipant(i, "team", t.name)}
@@ -544,13 +544,18 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                                     isCurrentTeam ? `${t.color} ${t.textColor} shadow-md cursor-pointer ring-2 ring-offset-1 ring-current` : "bg-gray-200 text-gray-400 hover:bg-gray-300 cursor-pointer"
                                   }`}>
                                   {IconComp && <IconComp size={18} />}
-                                  {isSamurai && (
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <path d="M4 12c0-4 3.5-8 8-8s8 4 8 8" />
-                                      <path d="M2 12h20" />
-                                      <path d="M12 4v2" />
-                                      <path d="M7 8l1 4" />
-                                      <path d="M17 8l-1 4" />
+                                  {t.icon === "Kabuto" && (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                      <path d="M12 2C8 2 4 5.5 3 10h18c-1-4.5-5-8-9-8z"/>
+                                      <path d="M2 11c0 0 1 3 4 4l1-2h10l1 2c3-1 4-4 4-4H2z"/>
+                                      <path d="M8 17c0 1.5 1.8 3 4 3s4-1.5 4-3H8z" opacity="0.6"/>
+                                      <path d="M12 2L10 6h4L12 2z" opacity="0.4"/>
+                                    </svg>
+                                  )}
+                                  {t.icon === "Shuriken" && (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                      <path d="M12 2l-2.5 7.5L2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5L12 2z"/>
+                                      <circle cx="12" cy="12" r="2.5" fill="currentColor" opacity="0.3"/>
                                     </svg>
                                   )}
                                 </button>
