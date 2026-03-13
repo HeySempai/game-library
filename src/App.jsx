@@ -19,7 +19,7 @@ import {
   loadGames,
   saveGames,
   loadVictories,
-  saveVictories,
+  addVictory,
   loadPlayers,
   savePlayers,
   parseDuration,
