@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { X, Dices, RotateCcw } from "lucide-react";
-import { playClick, playPop } from "../utils/sounds";
+import { playPop } from "../utils/sounds";
 
 const DICE_FACES = {
   1: [false, false, false, false, true, false, false, false, false],
@@ -12,7 +12,6 @@ const DICE_FACES = {
 };
 
 function playDiceSound() {
-  // Rattle-like sound: multiple quick clicks
   const ac = new (window.AudioContext || window.webkitAudioContext)();
   for (let i = 0; i < 6; i++) {
     const osc = ac.createOscillator();
@@ -31,7 +30,6 @@ function playDiceSound() {
 
 function playCoinSound() {
   const ac = new (window.AudioContext || window.webkitAudioContext)();
-  // Metallic ring
   const osc = ac.createOscillator();
   const gain = ac.createGain();
   osc.type = "sine";
@@ -45,30 +43,30 @@ function playCoinSound() {
   osc.stop(ac.currentTime + 0.3);
 }
 
-function DiceFace({ value, rolling, index }) {
+function DiceFace({ value, rolling, index, onClick }) {
   const dots = DICE_FACES[value];
   return (
     <div
-      className={`relative w-20 h-20 bg-white rounded-2xl shadow-lg border border-gray-100 grid grid-cols-3 grid-rows-3 p-2.5 gap-0.5 select-none ${
+      onClick={onClick}
+      className={`relative w-20 h-20 bg-white rounded-2xl shadow-lg border border-gray-100 grid grid-cols-3 grid-rows-3 p-2.5 gap-0.5 select-none cursor-pointer hover:shadow-xl transition-shadow ${
         rolling ? "animate-dice-roll" : "animate-dice-land"
       }`}
       style={{ animationDelay: rolling ? `${index * 60}ms` : `${index * 40}ms` }}
     >
       {dots.map((show, i) => (
         <div key={i} className="flex items-center justify-center">
-          {show && (
-            <div className="w-3.5 h-3.5 rounded-full bg-gray-800 shadow-inner" />
-          )}
+          {show && <div className="w-3.5 h-3.5 rounded-full bg-gray-800 shadow-inner" />}
         </div>
       ))}
     </div>
   );
 }
 
-function CoinFace({ value, flipping, index }) {
+function CoinFace({ value, flipping, index, onClick }) {
   return (
     <div
-      className={`relative w-20 h-20 rounded-full shadow-lg flex items-center justify-center select-none font-bold text-lg tracking-wide ${
+      onClick={onClick}
+      className={`relative w-20 h-20 rounded-full shadow-lg flex items-center justify-center select-none font-bold text-lg tracking-wide cursor-pointer hover:shadow-xl transition-shadow ${
         value === "Cara"
           ? "bg-gradient-to-br from-amber-300 to-yellow-500 text-amber-900"
           : "bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700"
@@ -87,9 +85,8 @@ export default function DiceRoller({ onClose }) {
   const [rolling, setRolling] = useState(false);
   const [history, setHistory] = useState([]);
 
-  const maxCount = mode === "dice" ? 2 : 1;
-
   const roll = useCallback(() => {
+    if (rolling) return;
     const count = mode === "coin" ? 1 : diceCount;
     setRolling(true);
 
@@ -113,16 +110,15 @@ export default function DiceRoller({ onClose }) {
       setResults(final);
       setRolling(false);
       playPop();
-      setHistory((prev) => [{ mode, results: final, time: new Date() }, ...prev].slice(0, 20));
+      setHistory((prev) => [{ mode, results: final, time: new Date() }, ...prev].slice(0, 3));
     }, 600);
-  }, [mode, diceCount]);
+  }, [mode, diceCount, rolling]);
 
   const total = mode === "dice" && results.length > 0 ? results.reduce((a, b) => a + b, 0) : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-scale-in" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div className="flex items-center justify-between p-5 pb-3">
           <div className="flex items-center gap-2">
             <Dices size={20} className="text-orange-500" />
@@ -133,7 +129,6 @@ export default function DiceRoller({ onClose }) {
           </button>
         </div>
 
-        {/* Mode toggle */}
         <div className="px-5 pb-4">
           <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
             <button
@@ -155,40 +150,30 @@ export default function DiceRoller({ onClose }) {
           </div>
         </div>
 
-        {/* Count selector - only for dice */}
         {mode === "dice" && (
           <div className="px-5 pb-4">
-            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Cantidad de dados
-            </p>
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Cantidad de dados</p>
             <div className="flex gap-1.5">
               {[1, 2].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => { setDiceCount(n); setResults([]); }}
+                <button key={n} onClick={() => { setDiceCount(n); setResults([]); }}
                   className={`w-9 h-9 rounded-lg text-sm font-bold transition-all cursor-pointer ${
-                    diceCount === n
-                      ? "bg-orange-500 text-white shadow-sm"
-                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    diceCount === n ? "bg-orange-500 text-white shadow-sm" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                   }`}
-                >
-                  {n}
-                </button>
+                >{n}</button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Results area */}
         <div className="px-5 pb-2 min-h-[140px] flex flex-col items-center justify-center">
           {results.length > 0 ? (
             <>
               <div className="flex flex-wrap gap-3 justify-center">
                 {results.map((val, i) =>
                   mode === "dice" ? (
-                    <DiceFace key={i} value={val} rolling={rolling} index={i} />
+                    <DiceFace key={i} value={val} rolling={rolling} index={i} onClick={roll} />
                   ) : (
-                    <CoinFace key={i} value={val} flipping={rolling} index={i} />
+                    <CoinFace key={i} value={val} flipping={rolling} index={i} onClick={roll} />
                   )
                 )}
               </div>
@@ -206,22 +191,16 @@ export default function DiceRoller({ onClose }) {
           )}
         </div>
 
-        {/* Roll button */}
         <div className="px-5 pb-5 pt-2">
-          <button
-            onClick={roll}
-            disabled={rolling}
+          <button onClick={roll} disabled={rolling}
             className={`w-full py-3.5 rounded-xl font-bold text-white text-sm transition-all cursor-pointer ${
-              rolling
-                ? "bg-orange-400 cursor-not-allowed"
-                : "bg-orange-500 hover:bg-orange-600 active:scale-[0.98] shadow-md hover:shadow-lg"
+              rolling ? "bg-orange-400 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600 active:scale-[0.98] shadow-md hover:shadow-lg"
             }`}
           >
             {rolling ? "..." : mode === "dice" ? "🎲  Tirar dados" : "🪙  Lanzar moneda"}
           </button>
         </div>
 
-        {/* History */}
         {history.length > 0 && (
           <div className="px-5 pb-5 border-t border-gray-100 pt-4">
             <div className="flex items-center justify-between mb-2">
@@ -230,17 +209,14 @@ export default function DiceRoller({ onClose }) {
                 <RotateCcw size={10} /> Limpiar
               </button>
             </div>
-            <div className="space-y-1.5 max-h-32 overflow-y-auto">
+            <div className="space-y-1.5">
               {history.map((entry, i) => (
                 <div key={i} className="flex items-center justify-between text-xs bg-gray-50 rounded-lg px-3 py-2">
                   <span className="text-gray-500">
-                    {entry.mode === "dice" ? "🎲" : "🪙"}{" "}
-                    {entry.results.join(", ")}
+                    {entry.mode === "dice" ? "🎲" : "🪙"} {entry.results.join(", ")}
                   </span>
                   {entry.mode === "dice" && (
-                    <span className="font-bold text-gray-700">
-                      = {entry.results.reduce((a, b) => a + b, 0)}
-                    </span>
+                    <span className="font-bold text-gray-700">= {entry.results.reduce((a, b) => a + b, 0)}</span>
                   )}
                 </div>
               ))}
