@@ -379,8 +379,8 @@ export default function RandomPicker({ games, onClose }) {
                       className="bg-gray-50 rounded-xl p-4 border border-gray-100 animate-fade-in"
                       style={{ animationDelay: `${idx * 0.1}s`, animationFillMode: "both" }}
                     >
-                      <div className="flex items-start gap-3">
-                        <span className="text-lg font-bold text-orange-400 w-6 text-center shrink-0 mt-1">
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg font-bold text-orange-400 w-6 text-center shrink-0">
                           {idx + 1}
                         </span>
                         <GameCover game={entry.game} size="lg" />
@@ -406,41 +406,41 @@ export default function RandomPicker({ games, onClose }) {
                             </span>
                           )}
                         </div>
+                      </div>
 
-                        {/* Expansions on the right side */}
-                        {entry.expansions.length > 0 && (
-                          <div className="flex gap-2 shrink-0 items-start">
+                      {/* Expansions row — full width below */}
+                      {entry.expansions.length > 0 && (
+                        <div className="mt-3 ml-9 pl-1 flex items-center gap-3 border-t border-gray-100 pt-3">
+                          <span className="text-[10px] text-gray-400 uppercase tracking-wide shrink-0 flex items-center gap-1 font-semibold">
+                            <Package size={11} /> +
+                          </span>
+                          <div className="flex gap-3 flex-wrap">
                             {entry.expansions.map((exp) => (
-                              <div key={exp.id} className="relative group">
-                                <div className="flex flex-col items-center gap-1">
-                                  {exp.imageUrl ? (
-                                    <img src={exp.imageUrl} alt={exp.nombre}
-                                      className="w-14 h-[4.5rem] rounded-lg object-contain bg-gray-100 border border-gray-200 group-hover:border-orange-300 group-hover:shadow-md transition-all" />
-                                  ) : (
-                                    <div className="w-14 h-[4.5rem] rounded-lg bg-gray-200 flex items-center justify-center border border-gray-200">
-                                      <Package size={14} className="text-gray-400" />
-                                    </div>
-                                  )}
-                                  <span className="text-[9px] text-gray-400 max-w-[56px] truncate text-center leading-tight">
-                                    {exp.nombre}
+                              <div key={exp.id} className="relative group flex items-center gap-2 bg-white rounded-lg px-2.5 py-1.5 border border-gray-200 hover:border-orange-300 hover:shadow-sm transition-all cursor-default">
+                                {exp.imageUrl ? (
+                                  <img src={exp.imageUrl} alt={exp.nombre}
+                                    className="w-8 h-10 rounded object-contain bg-gray-50 shrink-0" />
+                                ) : (
+                                  <div className="w-8 h-10 rounded bg-gray-100 flex items-center justify-center shrink-0">
+                                    <Package size={12} className="text-gray-400" />
+                                  </div>
+                                )}
+                                <div className="min-w-0">
+                                  <p className="text-xs font-medium text-gray-700 truncate max-w-[140px]">{exp.nombre}</p>
+                                  <span className={`text-[9px] font-semibold ${exp.tipo === "Ampliacion" ? "text-orange-500" : "text-sky-500"}`}>
+                                    {exp.tipo === "Ampliacion" ? "Ampliación" : "Expansión"}
                                   </span>
                                 </div>
                                 {/* Tooltip */}
                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-lg">
-                                  <span className="font-semibold">{exp.nombre}</span>
-                                  {exp.tipo === "Ampliacion" && (
-                                    <span className="ml-1.5 text-[10px] text-orange-300">(Ampliación)</span>
-                                  )}
-                                  {exp.tipo === "Expansion" && (
-                                    <span className="ml-1.5 text-[10px] text-sky-300">(Expansión)</span>
-                                  )}
+                                  {exp.nombre}
                                   <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                                 </div>
                               </div>
                             ))}
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
