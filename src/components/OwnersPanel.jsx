@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, Cake, MapPin, Star, Gamepad2, Trophy, List, LayoutGrid, RefreshCw, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Cake, MapPin, Star, Gamepad2, Trophy, List, LayoutGrid, RefreshCw, Plus, Search, Trash2 } from "lucide-react";
 
 const RANDOM_TITLES = [
   "El Estratega Silencioso", "El Soñador Impulsivo", "El Táctico Implacable",
@@ -16,21 +16,36 @@ const RANDOM_TITLES = [
   "El Vikingo de Cartón", "El Hechicero del Meeple", "El Barón del VP",
 ];
 
+const TITLES_KEY = "owner-titles";
+
+function loadTitles(ownersData) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TITLES_KEY));
+    if (saved && typeof saved === "object") return saved;
+  } catch {}
+  const map = {};
+  ownersData.forEach((o) => { map[o.id] = o.titulo; });
+  return map;
+}
+
+function saveTitles(titles) {
+  localStorage.setItem(TITLES_KEY, JSON.stringify(titles));
+}
+
 function getRandomTitle(currentTitle) {
   const filtered = RANDOM_TITLES.filter((t) => t !== currentTitle);
   return filtered[Math.floor(Math.random() * filtered.length)];
 }
 
-export default function OwnersPanel({ ownersData, games, victories, players, onClose, onAddGame }) {
+export default function OwnersPanel({ ownersData, games, victories, players, onClose, onAddGame, onRemoveOwnerFromGame }) {
   const [selectedOwner, setSelectedOwner] = useState(null);
   const [collectionView, setCollectionView] = useState("list");
-  const [titles, setTitles] = useState(() => {
-    const map = {};
-    ownersData.forEach((o) => { map[o.id] = o.titulo; });
-    return map;
-  });
+  const [titles, setTitles] = useState(() => loadTitles(ownersData));
   const [showAddGame, setShowAddGame] = useState(false);
-  const [addForm, setAddForm] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Persist titles
+  useEffect(() => { saveTitles(titles); }, [titles]);
 
   const getOwnerStats = (ownerName) => {
     const ownedGames = games.filter((g) => g.tipo === "Juego Base" && g.owners.includes(ownerName));
@@ -45,19 +60,26 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
   const owner = selectedOwner ? ownersData.find((o) => o.id === selectedOwner) : null;
   const ownerGames = owner ? games.filter((g) => g.tipo === "Juego Base" && g.owners.includes(owner.nombre)) : [];
 
-  // Add existing game to owner
   const handleAddExistingGame = (gameId) => {
     const game = games.find((g) => g.id === gameId);
     if (game && owner && !game.owners.includes(owner.nombre)) {
       onAddGame({ ...game, owners: [...game.owners, owner.nombre] }, "update");
     }
-    setShowAddGame(false);
   };
 
-  // Available games the owner doesn't have
+  const handleRemoveGame = (gameId) => {
+    if (owner) {
+      onRemoveOwnerFromGame(gameId, owner.nombre);
+    }
+  };
+
   const availableGames = owner
     ? games.filter((g) => g.tipo === "Juego Base" && !g.owners.includes(owner.nombre))
     : [];
+
+  const filteredAvailable = availableGames.filter((g) =>
+    g.nombre.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={onClose}>
@@ -69,7 +91,7 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
           </h2>
           <div className="flex gap-2">
             {owner && (
-              <button onClick={() => { setSelectedOwner(null); setShowAddGame(false); }} className="text-sm text-gray-400 hover:text-gray-600 px-2 py-1 cursor-pointer">Volver</button>
+              <button onClick={() => { setSelectedOwner(null); setShowAddGame(false); setSearchQuery(""); }} className="text-sm text-gray-400 hover:text-gray-600 px-2 py-1 cursor-pointer">Volver</button>
             )}
             <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 cursor-pointer"><X size={20} /></button>
           </div>
@@ -96,32 +118,40 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
             })}
           </div>
         ) : showAddGame ? (
-          /* Add game sub-view */
           <div className="p-5">
             <h3 className="text-sm font-bold text-gray-900 mb-3">Añadir juego a {owner.nombre}</h3>
-            
-            {/* Existing games */}
-            {availableGames.length > 0 && (
-              <div className="mb-4">
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Del catálogo existente</p>
-                <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                  {availableGames.map((g) => (
-                    <button key={g.id} onClick={() => handleAddExistingGame(g.id)}
-                      className="w-full flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2 hover:bg-orange-50 hover:border-orange-200 border border-transparent transition-colors cursor-pointer text-left">
-                      {g.imageUrl ? (
-                        <img src={g.imageUrl} alt={g.nombre} className="w-8 h-10 rounded object-contain shrink-0" />
-                      ) : (
-                        <div className="w-8 h-10 rounded bg-gray-200 flex items-center justify-center shrink-0 text-xs">🎲</div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{g.nombre}</p>
-                        <p className="text-xs text-gray-400">{g.jugadoresDisplay} · {g.duracion}</p>
-                      </div>
-                      <Plus size={14} className="text-orange-400 shrink-0" />
-                    </button>
-                  ))}
-                </div>
+
+            {/* Search bar */}
+            <div className="relative mb-3">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar juego..."
+                className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 focus:border-orange-400 focus:outline-none"
+              />
+            </div>
+
+            {filteredAvailable.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto mb-4">
+                {filteredAvailable.map((g) => (
+                  <button key={g.id} onClick={() => handleAddExistingGame(g.id)}
+                    className="flex items-center gap-2 bg-gray-50 rounded-lg px-2.5 py-2 hover:bg-orange-50 hover:border-orange-200 border border-transparent transition-colors cursor-pointer text-left">
+                    {g.imageUrl ? (
+                      <img src={g.imageUrl} alt={g.nombre} className="w-7 h-9 rounded object-contain shrink-0" />
+                    ) : (
+                      <div className="w-7 h-9 rounded bg-gray-200 flex items-center justify-center shrink-0 text-xs">🎲</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-900 truncate">{g.nombre}</p>
+                      <p className="text-[10px] text-gray-400">{g.jugadoresDisplay} · {g.duracion}</p>
+                    </div>
+                  </button>
+                ))}
               </div>
+            ) : (
+              <p className="text-sm text-gray-300 text-center py-6 mb-4">No hay juegos disponibles</p>
             )}
 
             <div className="border-t border-gray-100 pt-3">
@@ -133,7 +163,7 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
               </button>
             </div>
 
-            <button onClick={() => setShowAddGame(false)} className="w-full mt-2 py-2 text-sm text-gray-400 hover:text-gray-600 cursor-pointer">
+            <button onClick={() => { setShowAddGame(false); setSearchQuery(""); }} className="w-full mt-2 py-2 text-sm text-gray-400 hover:text-gray-600 cursor-pointer">
               Cancelar
             </button>
           </div>
@@ -180,7 +210,6 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
               </div>
             </div>
 
-            {/* Add game button */}
             <button
               onClick={() => setShowAddGame(true)}
               className="w-full mb-4 py-2.5 rounded-xl font-semibold text-sm bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 transition-colors cursor-pointer flex items-center justify-center gap-2"
@@ -209,7 +238,7 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
             {collectionView === "list" ? (
               <div className="space-y-1.5">
                 {ownerGames.map((g) => (
-                  <div key={g.id} className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
+                  <div key={g.id} className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2 group">
                     {g.imageUrl ? (
                       <img src={g.imageUrl} alt={g.nombre} className="w-8 h-10 rounded object-contain shrink-0" />
                     ) : (
@@ -219,13 +248,27 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
                       <p className="text-sm font-medium text-gray-900 truncate">{g.nombre}</p>
                       <p className="text-xs text-gray-400">{g.jugadoresDisplay} · {g.duracion}</p>
                     </div>
+                    <button
+                      onClick={() => handleRemoveGame(g.id)}
+                      className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                      title="Quitar de mi colección"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                 {ownerGames.map((g) => (
-                  <div key={g.id} className="flex flex-col items-center text-center">
+                  <div key={g.id} className="flex flex-col items-center text-center group relative">
+                    <button
+                      onClick={() => handleRemoveGame(g.id)}
+                      className="absolute -top-1 -right-1 z-10 p-1 rounded-full bg-white shadow-md text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                      title="Quitar de mi colección"
+                    >
+                      <Trash2 size={12} />
+                    </button>
                     {g.imageUrl ? (
                       <img
                         src={g.imageUrl}

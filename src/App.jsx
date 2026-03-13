@@ -610,9 +610,13 @@ function App() {
             } else if (action === "new") {
               setShowOwners(false);
               setShowAddForm(true);
-              // Store preload owner in sessionStorage for AddGameForm
               if (preloadOwner) sessionStorage.setItem("preloadOwner", preloadOwner);
             }
+          }}
+          onRemoveOwnerFromGame={(gameId, ownerName) => {
+            setGames((prev) => prev.map((g) =>
+              g.id === gameId ? { ...g, owners: g.owners.filter((o) => o !== ownerName) } : g
+            ));
           }}
         />
       )}
