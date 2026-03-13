@@ -322,7 +322,7 @@ const _games = [
     id: "boss-monster-items",
     tipo: "Expansion",
     nombre: "Boss Monster: Items Expansion",
-    duracion: "20-30 mins",
+    duracion: "90 mins",
     minJugadores: null,
     maxJugadores: null,
     jugadoresDisplay: "= Base",
