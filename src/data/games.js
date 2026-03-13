@@ -601,7 +601,7 @@ const _games = [
     id: "catan-dice",
     tipo: "Juego Base",
     nombre: "Catan Dice Game",
-    duracion: "15-30 mins",
+    duracion: "30 mins",
     minJugadores: 1,
     maxJugadores: 4,
     jugadoresDisplay: "1-4",
