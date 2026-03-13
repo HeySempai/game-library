@@ -637,7 +637,7 @@ const _games = [
     id: "uno-flex",
     tipo: "Juego Base",
     nombre: "UNO Flex",
-    duracion: "10 mins",
+    duracion: "30 mins",
     minJugadores: 2,
     maxJugadores: 8,
     jugadoresDisplay: "2-8",
