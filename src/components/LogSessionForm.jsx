@@ -1,5 +1,10 @@
-import { useState } from "react";
-import { X, Plus, Trash2, Trophy, Users, Clock, Save } from "lucide-react";
+import { useState, useMemo } from "react";
+import { X, Plus, Trash2, Trophy, Save, Check, Package } from "lucide-react";
+import { ownersData } from "../data/owners";
+import { getEffectivePlayerRange } from "../utils/storage";
+
+const avatarMap = {};
+ownersData.forEach((o) => { avatarMap[o.nombre] = o.avatar; });
 
 const VICTORY_LABELS = {
   score_descending: "Puntaje (Mayor gana)",
@@ -10,19 +15,106 @@ const VICTORY_LABELS = {
   no_winner: "Sin ganador",
 };
 
-export default function LogSessionForm({ game, victoryType, teamMode, players, onSave, onClose }) {
+// Predefined team configs per game
+const TEAM_PRESETS = {
+  samurai: {
+    label: "Facciones",
+    teams: [
+      { name: "Ronin", color: "bg-red-500", textColor: "text-white" },
+      { name: "Samurai + Shogun", color: "bg-amber-400", textColor: "text-amber-900" },
+      { name: "Ninja", color: "bg-blue-500", textColor: "text-white" },
+    ],
+  },
+  "salem-1692": {
+    label: "Roles",
+    teams: [
+      { name: "Bruja", color: "bg-purple-500", textColor: "text-white" },
+      { name: "Aldeano", color: "bg-emerald-500", textColor: "text-white" },
+    ],
+  },
+  "con-base": {
+    label: "Formato",
+    formats: [
+      { id: "1v1", name: "1 vs 1", maxPlayers: 2, teams: null },
+      { id: "2v2", name: "2 vs 2", maxPlayers: 4, teams: [
+        { name: "Equipo 1", color: "bg-sky-500", textColor: "text-white" },
+        { name: "Equipo 2", color: "bg-rose-500", textColor: "text-white" },
+      ]},
+    ],
+  },
+  betrayal: {
+    label: "Modo",
+    formats: [
+      { id: "1vAll", name: "1 vs Todos", maxPlayers: 6, teams: [
+        { name: "Traidor", color: "bg-red-600", textColor: "text-white" },
+        { name: "Héroes", color: "bg-sky-500", textColor: "text-white" },
+      ]},
+      { id: "free", name: "Todos contra todos", maxPlayers: 6, teams: null },
+    ],
+  },
+  saboteur: {
+    label: "Facciones",
+    teams: [
+      { name: "Minero", color: "bg-amber-500", textColor: "text-white" },
+      { name: "Saboteador", color: "bg-gray-700", textColor: "text-white" },
+    ],
+  },
+};
+
+export default function LogSessionForm({ game, victoryType, teamMode, players, allGames, onSave, onClose }) {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [durationMinutes, setDurationMinutes] = useState("");
   const [notes, setNotes] = useState("");
-  const [participants, setParticipants] = useState(
-    players.slice(0, 4).map((p) => ({ playerName: p, score: "", isWinner: false, team: "" }))
-  );
   const [cooperativeWin, setCooperativeWin] = useState(null);
+
+  // Expansions
+  const expansions = useMemo(() =>
+    (allGames || []).filter((g) => g.parentId === game.id && (g.tipo === "Expansion" || g.tipo === "Ampliacion")),
+    [game.id, allGames]
+  );
+  const [selectedExpansions, setSelectedExpansions] = useState([]);
+
+  // Max players calculation (considering selected expansions)
+  const maxPlayers = useMemo(() => {
+    let max = game.maxJugadores || 99;
+    selectedExpansions.forEach((expId) => {
+      const exp = expansions.find((e) => e.id === expId);
+      if (exp?.maxJugadores && exp.maxJugadores > max) max = exp.maxJugadores;
+    });
+    return max;
+  }, [game, expansions, selectedExpansions]);
+
+  // Team preset
+  const preset = TEAM_PRESETS[game.id] || null;
+  const [selectedFormat, setSelectedFormat] = useState(preset?.formats?.[0]?.id || null);
+
+  const activeFormat = preset?.formats?.find((f) => f.id === selectedFormat) || null;
+  const activeTeams = activeFormat?.teams || preset?.teams || null;
+  const effectiveMaxPlayers = activeFormat?.maxPlayers || maxPlayers;
+
+  // Participants — preload all 6 players (up to max)
+  const initialPlayers = useMemo(() => {
+    const count = Math.min(players.length, effectiveMaxPlayers);
+    return players.slice(0, count).map((p) => ({
+      playerName: p, score: "", isWinner: false,
+      team: activeTeams ? activeTeams[0]?.name || "" : "",
+    }));
+  }, []);
+  const [participants, setParticipants] = useState(initialPlayers);
 
   const isScoreBased = victoryType === "score_descending" || victoryType === "score_ascending";
 
+  // Already-selected player names
+  const usedNames = participants.map((p) => p.playerName).filter(Boolean);
+  const canAddMore = participants.length < effectiveMaxPlayers;
+
   const addParticipant = () => {
-    setParticipants([...participants, { playerName: "", score: "", isWinner: false, team: "" }]);
+    if (!canAddMore) return;
+    const available = players.filter((p) => !usedNames.includes(p));
+    setParticipants([...participants, {
+      playerName: available[0] || "", score: "", isWinner: false,
+      team: activeTeams ? activeTeams[0]?.name || "" : "",
+    }]);
   };
 
   const removeParticipant = (i) => {
@@ -33,6 +125,19 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, o
     setParticipants(participants.map((p, idx) => idx === i ? { ...p, [field]: value } : p));
   };
 
+  const togglePlayer = (playerName) => {
+    if (usedNames.includes(playerName)) {
+      // Remove
+      setParticipants(participants.filter((p) => p.playerName !== playerName));
+    } else if (canAddMore) {
+      // Add
+      setParticipants([...participants, {
+        playerName, score: "", isWinner: false,
+        team: activeTeams ? activeTeams[0]?.name || "" : "",
+      }]);
+    }
+  };
+
   const selectWinner = (i) => {
     if (victoryType === "team_winner") {
       updateParticipant(i, "isWinner", !participants[i].isWinner);
@@ -41,12 +146,17 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, o
     }
   };
 
+  const toggleExpansion = (expId) => {
+    setSelectedExpansions((prev) =>
+      prev.includes(expId) ? prev.filter((id) => id !== expId) : [...prev, expId]
+    );
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const validParticipants = participants.filter((p) => p.playerName.trim());
     if (validParticipants.length === 0 && victoryType !== "no_winner") return;
 
-    // Auto-calculate winner for score-based games
     let finalParticipants = validParticipants.map((p) => ({
       ...p,
       score: p.score !== "" ? parseInt(p.score) : null,
@@ -59,8 +169,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, o
           ? Math.max(...scored.map((p) => p.score))
           : Math.min(...scored.map((p) => p.score));
         finalParticipants = finalParticipants.map((p) => ({
-          ...p,
-          isWinner: p.score === best,
+          ...p, isWinner: p.score === best,
         }));
       }
     }
@@ -94,9 +203,9 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, o
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 cursor-pointer"><X size={20} /></button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 space-y-5">
           {/* Victory type badge */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-600 uppercase tracking-wide">
               {VICTORY_LABELS[victoryType] || victoryType}
             </span>
@@ -105,19 +214,64 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, o
                 {teamMode === "random_teams" ? "Equipos random" : teamMode === "one_vs_all" ? "1 vs Todos" : "Equipos fijos"}
               </span>
             )}
+            <span className="text-[10px] font-medium text-gray-400">
+              Máx {effectiveMaxPlayers} jugadores
+            </span>
           </div>
+
+          {/* Expansions picker */}
+          {expansions.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                <Package size={12} /> Expansiones usadas
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {expansions.map((exp) => {
+                  const selected = selectedExpansions.includes(exp.id);
+                  return (
+                    <button key={exp.id} type="button" onClick={() => toggleExpansion(exp.id)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer border ${
+                        selected
+                          ? "bg-orange-50 border-orange-300 text-orange-700"
+                          : "bg-gray-50 border-gray-200 text-gray-500 hover:border-gray-300"
+                      }`}>
+                      {selected && <Check size={12} className="text-orange-500" />}
+                      {exp.nombre}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Format selector for games with formats */}
+          {preset?.formats && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-2">{preset.label}</label>
+              <div className="flex gap-2">
+                {preset.formats.map((f) => (
+                  <button key={f.id} type="button" onClick={() => setSelectedFormat(f.id)}
+                    className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${
+                      selectedFormat === f.id ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    }`}>
+                    {f.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Date & Duration */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Fecha</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 text-sm focus:border-orange-400 focus:outline-none" />
+                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-3 text-gray-700 text-sm focus:border-orange-400 focus:outline-none" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Duración (min)</label>
               <input type="number" value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} placeholder="60"
-                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 text-sm focus:border-orange-400 focus:outline-none" />
+                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-3 text-gray-700 text-sm focus:border-orange-400 focus:outline-none" />
             </div>
           </div>
 
@@ -127,59 +281,121 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, o
               <label className="block text-xs font-medium text-gray-500 mb-2">Resultado</label>
               <div className="flex gap-2">
                 <button type="button" onClick={() => setCooperativeWin(true)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${cooperativeWin === true ? "bg-emerald-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+                  className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${cooperativeWin === true ? "bg-emerald-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
                   🎉 Victoria
                 </button>
                 <button type="button" onClick={() => setCooperativeWin(false)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${cooperativeWin === false ? "bg-red-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+                  className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${cooperativeWin === false ? "bg-red-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
                   💀 Derrota
                 </button>
               </div>
             </div>
           )}
 
-          {/* Participants */}
+          {/* Player avatar grid — toggle on/off */}
           {victoryType !== "no_winner" && (
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-medium text-gray-500">Jugadores</label>
-                <button type="button" onClick={addParticipant} className="flex items-center gap-1 text-xs text-orange-500 hover:text-orange-600 cursor-pointer">
-                  <Plus size={12} /> Agregar
-                </button>
-              </div>
-              <div className="space-y-2">
-                {participants.map((p, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <select value={p.playerName} onChange={(e) => updateParticipant(i, "playerName", e.target.value)}
-                      className="flex-1 bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-700 focus:border-orange-400 focus:outline-none">
-                      <option value="">Jugador...</option>
-                      {players.map((pl) => <option key={pl} value={pl}>{pl}</option>)}
-                    </select>
-
-                    {isScoreBased && (
-                      <input type="number" value={p.score} onChange={(e) => updateParticipant(i, "score", e.target.value)}
-                        placeholder="Pts" className="w-20 bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-700 text-center focus:border-orange-400 focus:outline-none" />
-                    )}
-
-                    {victoryType === "team_winner" && (
-                      <input type="text" value={p.team} onChange={(e) => updateParticipant(i, "team", e.target.value)}
-                        placeholder="Equipo" className="w-24 bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-700 focus:border-orange-400 focus:outline-none" />
-                    )}
-
-                    {(victoryType === "absolute_winner" || victoryType === "team_winner") && (
-                      <button type="button" onClick={() => selectWinner(i)}
-                        className={`p-2 rounded-lg transition-colors cursor-pointer ${p.isWinner ? "bg-amber-100 text-amber-500" : "bg-gray-100 text-gray-300 hover:text-gray-400"}`}
-                        title="Ganador">
-                        <Trophy size={14} />
-                      </button>
-                    )}
-
-                    <button type="button" onClick={() => removeParticipant(i)} className="p-2 text-gray-300 hover:text-red-400 cursor-pointer">
-                      <Trash2 size={14} />
+              <label className="text-xs font-medium text-gray-500 mb-3 block">
+                Jugadores ({participants.filter((p) => p.playerName).length}/{effectiveMaxPlayers})
+              </label>
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-4">
+                {players.map((name) => {
+                  const isActive = usedNames.includes(name);
+                  const disabled = !isActive && !canAddMore;
+                  return (
+                    <button key={name} type="button" onClick={() => !disabled && togglePlayer(name)}
+                      className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all cursor-pointer border-2 ${
+                        isActive
+                          ? "border-orange-400 bg-orange-50"
+                          : disabled
+                            ? "border-gray-100 bg-gray-50 opacity-40 cursor-not-allowed"
+                            : "border-transparent hover:border-gray-200 hover:bg-gray-50"
+                      }`}>
+                      <div className="relative">
+                        {avatarMap[name] ? (
+                          <img src={avatarMap[name]} alt={name}
+                            className={`w-12 h-12 rounded-full object-cover transition-all ${isActive ? "ring-2 ring-orange-400" : "grayscale opacity-60"}`}
+                            loading="eager" width={48} height={48} decoding="async" />
+                        ) : (
+                          <span className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${
+                            isActive ? "bg-orange-100 text-orange-600" : "bg-gray-200 text-gray-400"
+                          }`}>{name.charAt(0)}</span>
+                        )}
+                        {isActive && (
+                          <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                            <Check size={10} className="text-white" />
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] font-medium text-gray-600 leading-tight text-center">
+                        {name.split(" ")[0]}
+                      </span>
                     </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+
+              {/* Active participants detail rows */}
+              {participants.filter((p) => p.playerName).length > 0 && (
+                <div className="space-y-2">
+                  {participants.map((p, i) => {
+                    if (!p.playerName) return null;
+                    return (
+                      <div key={p.playerName} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
+                        {avatarMap[p.playerName] ? (
+                          <img src={avatarMap[p.playerName]} alt={p.playerName}
+                            className="w-9 h-9 rounded-full object-cover" width={36} height={36} decoding="async" />
+                        ) : (
+                          <span className="w-9 h-9 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-bold">
+                            {p.playerName.charAt(0)}
+                          </span>
+                        )}
+                        <span className="text-sm font-medium text-gray-700 flex-1">{p.playerName.split(" ")[0]}</span>
+
+                        {isScoreBased && (
+                          <input type="number" value={p.score} onChange={(e) => updateParticipant(i, "score", e.target.value)}
+                            placeholder="Pts"
+                            className="w-20 bg-white border border-gray-200 rounded-lg px-2 py-2.5 text-sm text-gray-700 text-center focus:border-orange-400 focus:outline-none" />
+                        )}
+
+                        {/* Team selector — predefined or freeform */}
+                        {victoryType === "team_winner" && activeTeams && (
+                          <div className="flex gap-1">
+                            {activeTeams.map((t) => (
+                              <button key={t.name} type="button" onClick={() => updateParticipant(i, "team", t.name)}
+                                className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                                  p.team === t.name ? `${t.color} ${t.textColor} shadow-sm` : "bg-gray-200 text-gray-400"
+                                }`}>
+                                {t.name.length > 10 ? t.name.split(" ")[0] : t.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {victoryType === "team_winner" && !activeTeams && (
+                          <input type="text" value={p.team} onChange={(e) => updateParticipant(i, "team", e.target.value)}
+                            placeholder="Equipo"
+                            className="w-24 bg-white border border-gray-200 rounded-lg px-2 py-2.5 text-sm text-gray-700 focus:border-orange-400 focus:outline-none" />
+                        )}
+
+                        {(victoryType === "absolute_winner" || victoryType === "team_winner") && (
+                          <button type="button" onClick={() => selectWinner(i)}
+                            className={`p-2.5 rounded-xl transition-colors cursor-pointer ${
+                              p.isWinner ? "bg-amber-100 text-amber-500" : "bg-gray-200 text-gray-300 hover:text-gray-400"
+                            }`} title="Ganador">
+                            <Trophy size={16} />
+                          </button>
+                        )}
+
+                        <button type="button" onClick={() => removeParticipant(i)}
+                          className="p-2 text-gray-300 hover:text-red-400 cursor-pointer">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -194,11 +410,12 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, o
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Notas (opcional)</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Algo memorable de la partida..."
-              className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 text-sm focus:border-orange-400 focus:outline-none resize-none" />
+              className="w-full bg-white border border-gray-200 rounded-xl px-3 py-3 text-gray-700 text-sm focus:border-orange-400 focus:outline-none resize-none" />
           </div>
 
-          <button type="submit" className="w-full bg-orange-500 hover:bg-orange-400 text-white font-semibold py-2.5 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2">
-            <Save size={16} /> Registrar Partida
+          <button type="submit"
+            className="w-full bg-orange-500 hover:bg-orange-400 text-white font-semibold py-3 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2 text-base">
+            <Save size={18} /> Registrar Partida
           </button>
         </form>
       </div>
