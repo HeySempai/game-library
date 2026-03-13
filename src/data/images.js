@@ -9,7 +9,7 @@ export const imageMap = {
   "con-base": `${S}/command-of-nature.jpg`,
   "sushi-go": `${S}/sushi-go-party.webp`,
   "mario": `${S}/mario-bros-power-up.webp`,
-  "exploding-kittens": `${S}/exploding-kittens.webp`,
+  "exploding-kittens": `${S}/exploding-kittens.png`,
   "virus": `${S}/virus.webp`,
   "wingspan-base": `${S}/wingspan.webp`,
   "flip7": `${S}/flip-7.webp`,

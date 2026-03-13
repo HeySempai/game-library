@@ -51,7 +51,7 @@ function App() {
       return stored.map((g) => ({
         ...g,
         nombre: nameMap[g.id] || g.nombre,
-        imageUrl: g.imageUrl || imageMap[g.id] || "",
+        imageUrl: imageMap[g.id] || g.imageUrl || "",
       }));
     }
     return initialGames;
