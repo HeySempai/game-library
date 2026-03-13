@@ -319,9 +319,9 @@ const _games = [
     parentId: null,
   },
   {
-    id: "boss-monster-items",
+    id: "boss-monster-tools",
     tipo: "Expansion",
-    nombre: "Boss Monster: Items Expansion",
+    nombre: "Boss Monster: Tools of Hero-Kind",
     duracion: "90 mins",
     minJugadores: null,
     maxJugadores: null,
