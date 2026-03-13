@@ -187,9 +187,9 @@ function App() {
       if (!players.includes(owner)) setPlayers((prev) => [...prev, owner]);
     });
   };
-  const handleEditGame = (gameId, { nombre, owners, category }) => {
+  const handleEditGame = (gameId, { nombre, owners, category, imageUrl }) => {
     setGames((prev) =>
-      prev.map((g) => (g.id === gameId ? { ...g, nombre: nombre || g.nombre, owners } : g))
+      prev.map((g) => (g.id === gameId ? { ...g, nombre: nombre || g.nombre, owners, ...(imageUrl !== undefined ? { imageUrl } : {}) } : g))
     );
     if (category) {
       categoryMap[gameId] = category;
@@ -197,7 +197,7 @@ function App() {
       delete categoryMap[gameId];
     }
     if (selectedGame?.id === gameId) {
-      setSelectedGame((prev) => ({ ...prev, nombre: nombre || prev.nombre, owners }));
+      setSelectedGame((prev) => ({ ...prev, nombre: nombre || prev.nombre, owners, ...(imageUrl !== undefined ? { imageUrl } : {}) }));
     }
   };
 
