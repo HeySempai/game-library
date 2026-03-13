@@ -14,6 +14,8 @@ import {
   Menu,
   SlidersHorizontal,
   ChevronDown,
+  Settings,
+  Eye,
 } from "lucide-react";
 import { initialGames } from "./data/games";
 import { imageMap } from "./data/images";
