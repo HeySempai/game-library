@@ -113,7 +113,7 @@ export default function QuickPicker({ games, onClose }) {
     allCategories.filter((cat) => !deactivated.has(cat))
   );
 
-  const eligible = filterEligible(games, playerCount, activeCategories);
+  const eligible = filterEligible(games, playerCount, activeCategories, rngDisabled);
 
   const toggleCategory = (cat) => {
     setDeactivated((prev) => {
