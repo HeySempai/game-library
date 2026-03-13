@@ -354,7 +354,7 @@ function App() {
       </div>
 
       {/* Grid */}
-      <main className="max-w-[90rem] mx-auto px-5 pb-10">
+      <main className="max-w-[90rem] mx-auto px-3 sm:px-5 pb-10">
         {filteredGames.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-5xl mb-4 opacity-30">🎲</p>
