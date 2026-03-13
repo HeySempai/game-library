@@ -501,10 +501,10 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
               </div>
 
               {/* Active participants detail rows */}
-              {participants.filter((p) => p.playerName).length > 0 && (
+              {participants.length > 0 && (
                 <div className="space-y-2">
                   {participants.map((p, i) => {
-                    if (!p.playerName) return null;
+                    if (!p.playerName && !p.isGuest) return null;
                     return (
                       <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
                         {p.isGuest ? (
