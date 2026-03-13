@@ -376,11 +376,11 @@ export default function RandomPicker({ games, onClose }) {
                   return (
                     <div
                       key={entry.game.id}
-                      className="bg-gray-50 rounded-xl p-3 border border-gray-100 animate-fade-in"
+                      className="bg-gray-50 rounded-xl p-4 border border-gray-100 animate-fade-in"
                       style={{ animationDelay: `${idx * 0.1}s`, animationFillMode: "both" }}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg font-bold text-orange-400 w-6 text-center shrink-0">
+                      <div className="flex items-start gap-3">
+                        <span className="text-lg font-bold text-orange-400 w-6 text-center shrink-0 mt-1">
                           {idx + 1}
                         </span>
                         <GameCover game={entry.game} size="lg" />
@@ -406,25 +406,41 @@ export default function RandomPicker({ games, onClose }) {
                             </span>
                           )}
                         </div>
-                      </div>
 
-                      {entry.expansions.length > 0 && (
-                        <div className="mt-2 ml-9 flex items-center gap-2">
-                          <span className="text-[10px] text-gray-400 uppercase tracking-wide shrink-0 flex items-center gap-1">
-                            <Package size={10} /> Incluye:
-                          </span>
-                          <div className="flex gap-1.5 overflow-x-auto">
+                        {/* Expansions on the right side */}
+                        {entry.expansions.length > 0 && (
+                          <div className="flex gap-2 shrink-0 items-start">
                             {entry.expansions.map((exp) => (
-                              <div key={exp.id} className="flex flex-col items-center gap-0.5 shrink-0">
-                                <GameCover game={exp} size="sm" />
-                                <span className="text-[9px] text-gray-400 max-w-[48px] truncate text-center">
-                                  {exp.nombre}
-                                </span>
+                              <div key={exp.id} className="relative group">
+                                <div className="flex flex-col items-center gap-1">
+                                  {exp.imageUrl ? (
+                                    <img src={exp.imageUrl} alt={exp.nombre}
+                                      className="w-14 h-[4.5rem] rounded-lg object-contain bg-gray-100 border border-gray-200 group-hover:border-orange-300 group-hover:shadow-md transition-all" />
+                                  ) : (
+                                    <div className="w-14 h-[4.5rem] rounded-lg bg-gray-200 flex items-center justify-center border border-gray-200">
+                                      <Package size={14} className="text-gray-400" />
+                                    </div>
+                                  )}
+                                  <span className="text-[9px] text-gray-400 max-w-[56px] truncate text-center leading-tight">
+                                    {exp.nombre}
+                                  </span>
+                                </div>
+                                {/* Tooltip */}
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-lg">
+                                  <span className="font-semibold">{exp.nombre}</span>
+                                  {exp.tipo === "Ampliacion" && (
+                                    <span className="ml-1.5 text-[10px] text-orange-300">(Ampliación)</span>
+                                  )}
+                                  {exp.tipo === "Expansion" && (
+                                    <span className="ml-1.5 text-[10px] text-sky-300">(Expansión)</span>
+                                  )}
+                                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                                </div>
                               </div>
                             ))}
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   );
                 })}
