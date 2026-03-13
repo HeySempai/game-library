@@ -310,7 +310,7 @@ const _games = [
     id: "boss-monster-2",
     tipo: "Juego Base",
     nombre: "Boss Monster 2: The Next Level",
-    duracion: "20-30 mins",
+    duracion: "90 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
