@@ -538,6 +538,14 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                   })}
                 </div>
               )}
+
+              {/* Add guest player button */}
+              {canAddMore && (
+                <button type="button" onClick={addParticipant}
+                  className="w-full mt-3 py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 hover:border-orange-300 hover:text-orange-500 transition-colors flex items-center justify-center gap-2 text-sm font-medium cursor-pointer">
+                  <UserPlus size={16} /> Añadir jugador invitado
+                </button>
+              )}
             </div>
           )}
 
