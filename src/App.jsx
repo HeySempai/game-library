@@ -201,7 +201,7 @@ function App() {
       <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "bg-white/70 backdrop-blur-md border-b border-gray-100 shadow-sm" : "bg-transparent border-b border-transparent"}`}>
         <div className="max-w-[90rem] mx-auto px-5 py-3">
           {/* Search + Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex-1 relative">
               <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
@@ -209,7 +209,7 @@ function App() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar"
-                className="w-full max-w-md bg-gray-200/70 rounded-full pl-11 pr-5 py-3 text-sm text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-orange-300 focus:outline-none transition-all"
+                className="w-full sm:max-w-md bg-gray-200/70 rounded-full pl-11 pr-5 py-2.5 sm:py-3 text-sm text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-orange-300 focus:outline-none transition-all"
               />
             </div>
             <div className="flex items-center gap-1.5">
