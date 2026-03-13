@@ -21,7 +21,8 @@ const TEAM_PRESETS = {
     label: "Facciones",
     teams: [
       { name: "Ronin", color: "bg-red-500", textColor: "text-white", max: 1 },
-      { name: "Samurai + Shogun", color: "bg-amber-400", textColor: "text-amber-900" },
+      { name: "Shogun", color: "bg-amber-400", textColor: "text-amber-900", max: 1 },
+      { name: "Samurai", color: "bg-amber-400", textColor: "text-amber-900" },
       { name: "Ninja", color: "bg-blue-500", textColor: "text-white" },
     ],
     requireAllTeams: true,
