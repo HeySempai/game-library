@@ -38,6 +38,8 @@ import RandomPicker from "./components/RandomPicker";
 import Leaderboard from "./components/Leaderboard";
 import OwnersPanel from "./components/OwnersPanel";
 import DiceRoller from "./components/DiceRoller";
+import EditGameForm from "./components/EditGameForm";
+import SettingsPanel from "./components/SettingsPanel";
 
 function App() {
   const [games, setGames] = useState(() => {
