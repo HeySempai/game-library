@@ -1,17 +1,46 @@
 import { useState } from "react";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, Upload, Loader2 } from "lucide-react";
 import { categoryMap, allCategories } from "../data/categories";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function EditGameForm({ game, players, onSave, onClose }) {
   const [nombre, setNombre] = useState(game.nombre);
   const [owners, setOwners] = useState([...game.owners]);
   const [category, setCategory] = useState(categoryMap[game.id] || "");
   const [newOwner, setNewOwner] = useState("");
+  const [imageUrl, setImageUrl] = useState(game.imageUrl || "");
+  const [uploading, setUploading] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ nombre: nombre.trim() || game.nombre, owners, category });
+    onSave({ nombre: nombre.trim() || game.nombre, owners, category, imageUrl });
     onClose();
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${game.id}.${ext}`;
+
+      const { error } = await supabase.storage
+        .from("covers")
+        .upload(fileName, file, { upsert: true });
+
+      if (error) throw error;
+
+      const { data } = supabase.storage.from("covers").getPublicUrl(fileName);
+      // Add cache-bust to force refresh
+      setImageUrl(`${data.publicUrl}?t=${Date.now()}`);
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Error al subir la imagen");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const toggleOwner = (name) => {
@@ -51,6 +80,34 @@ export default function EditGameForm({ game, players, onSave, onClose }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-5">
+          {/* Cover image */}
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-2">Portada</label>
+            <div className="flex items-center gap-4">
+              {imageUrl ? (
+                <img src={imageUrl} alt={game.nombre} className="w-16 h-20 rounded-lg object-contain bg-gray-50" />
+              ) : (
+                <div className="w-16 h-20 rounded-lg bg-gray-100 flex items-center justify-center text-2xl opacity-30">🎲</div>
+              )}
+              <label className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                uploading ? "bg-gray-100 text-gray-400" : "bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-200"
+              }`}>
+                {uploading ? (
+                  <><Loader2 size={14} className="animate-spin" /> Subiendo...</>
+                ) : (
+                  <><Upload size={14} /> Cambiar portada</>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          </div>
+
           {/* Nombre */}
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-1">Nombre</label>
@@ -150,7 +207,8 @@ export default function EditGameForm({ game, players, onSave, onClose }) {
 
           <button
             type="submit"
-            className="w-full bg-orange-500 hover:bg-orange-400 text-white font-semibold py-2.5 rounded-xl transition-colors cursor-pointer"
+            disabled={uploading}
+            className="w-full bg-orange-500 hover:bg-orange-400 text-white font-semibold py-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
           >
             Guardar Cambios
           </button>
