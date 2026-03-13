@@ -781,7 +781,7 @@ const _games = [
     id: "root",
     tipo: "Juego Base",
     nombre: "Root",
-    duracion: "120-240 mins",
+    duracion: "120 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
