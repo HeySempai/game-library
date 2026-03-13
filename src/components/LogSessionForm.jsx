@@ -271,7 +271,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     const newIdx = participants.length;
     setParticipants([...participants, {
       playerName: "", score: "", isWinner: false, isGuest: true,
-      team: activeTeams ? assignTeam(newIdx, activeTeams, participants.length + 1, preset) : "",
+      team: "",
     }]);
   };
 
