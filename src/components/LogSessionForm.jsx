@@ -594,12 +594,12 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
             </div>
           )}
 
-          {/* Team validation errors */}
-          {!teamValidation.valid && (
+          {/* Validation errors */}
+          {(!teamValidation.valid || !formValidation.valid) && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3">
-              <p className="text-xs font-semibold text-red-600 mb-1">⚠️ Asignación de facciones incompleta:</p>
+              <p className="text-xs font-semibold text-red-600 mb-1">⚠️ No se puede registrar:</p>
               <ul className="text-xs text-red-500 space-y-0.5">
-                {teamValidation.errors.map((err, i) => (
+                {[...teamValidation.errors, ...formValidation.errors].map((err, i) => (
                   <li key={i}>• {err}</li>
                 ))}
               </ul>
