@@ -20,12 +20,20 @@ const TEAM_PRESETS = {
   samurai: {
     label: "Facciones",
     teams: [
-      { name: "Ronin", color: "bg-red-500", textColor: "text-white", max: 1 },
-      { name: "Shogun", color: "bg-amber-400", textColor: "text-amber-900", max: 1 },
-      { name: "Samurai", color: "bg-amber-400", textColor: "text-amber-900" },
-      { name: "Ninja", color: "bg-blue-500", textColor: "text-white" },
+      { name: "Ronin", color: "bg-red-500", textColor: "text-white", max: 1, icon: "Swords" },
+      { name: "Shogun", color: "bg-amber-400", textColor: "text-amber-900", max: 1, icon: "Crown" },
+      { name: "Samurai", color: "bg-amber-400", textColor: "text-amber-900", icon: "Shield" },
+      { name: "Ninja", color: "bg-blue-500", textColor: "text-white", icon: "EyeOff" },
     ],
-    requireAllTeams: true,
+    // Distribution per player count: [Ronin, Shogun, Samurai, Ninja]
+    distribution: {
+      3: [1, 1, 0, 1],
+      4: [1, 1, 0, 2],
+      5: [1, 1, 0, 3],
+      6: [1, 1, 1, 3],
+      7: [1, 1, 2, 3],
+    },
+    requireAllTeams: false, // Not all teams required at low counts (e.g. 3p has no Samurai)
   },
   "salem-1692": {
     label: "Roles",
