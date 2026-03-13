@@ -594,6 +594,8 @@ function App() {
           expansions={getExpansions(selectedGame.id)}
           allGames={games}
           category={categoryMap[selectedGame.id]}
+          gameConfig={gameConfigs[selectedGame.id]}
+          players={players}
           onClose={() => setSelectedGame(null)}
           onEdit={() => setEditingGame(selectedGame)}
         />
@@ -602,14 +604,17 @@ function App() {
         <EditGameForm
           game={editingGame}
           players={players}
+          gameConfig={gameConfigs[editingGame.id]}
           onSave={(changes) => handleEditGame(editingGame.id, changes)}
           onClose={() => setEditingGame(null)}
+          onConfigChange={handleConfigChange}
         />
       )}
       {showAddForm && <AddGameForm games={games} players={players} onAdd={handleAddGame} onClose={() => setShowAddForm(false)} />}
       {showQuickPicker && <QuickPicker games={games} onClose={() => setShowQuickPicker(false)} />}
       {showMarathon && <RandomPicker games={games} onClose={() => setShowMarathon(false)} />}
       {showLeaderboard && <Leaderboard victories={victories} games={games} players={players} onAddVictory={handleAddVictory} onClose={() => setShowLeaderboard(false)} />}
+      {showHistory && <GameHistoryPanel games={games} players={players} gameConfigs={gameConfigs} onClose={() => setShowHistory(false)} />}
       {showOwners && (
         <OwnersPanel
           ownersData={ownersData}
