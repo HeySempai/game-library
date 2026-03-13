@@ -54,7 +54,7 @@ function App() {
   const [showMarathon, setShowMarathon] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showOwners, setShowOwners] = useState(false);
-
+  const [showDice, setShowDice] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOwner, setFilterOwner] = useState("all");
