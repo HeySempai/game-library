@@ -521,16 +521,29 @@ function App() {
 
       {/* Stats */}
       <div className="max-w-[90rem] mx-auto px-3 sm:px-5 py-2 sm:py-3">
-        <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-gray-400 tracking-wide uppercase">
-          <span>
-            {filteredGames.length === baseGames.length
-              ? `${baseGames.length} juegos`
-              : `${filteredGames.length} de ${baseGames.length}`}
-          </span>
-          <span>·</span>
-          <span>{games.length - baseGames.length} expansiones</span>
-          <span>·</span>
-          <span>{victories.length} partidas</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-gray-400 tracking-wide uppercase">
+            <span>
+              {filteredGames.length === displayableGames.length
+                ? `${displayableGames.length} ${showAll ? "items" : "juegos"}`
+                : `${filteredGames.length} de ${displayableGames.length}`}
+            </span>
+            <span>·</span>
+            <span>{games.length - baseGames.length} expansiones</span>
+            <span>·</span>
+            <span>{victories.length} partidas</span>
+          </div>
+          <button
+            onClick={() => setShowAll((v) => !v)}
+            className={`flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
+              showAll
+                ? "bg-orange-500 text-white"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            <Eye size={12} />
+            {showAll ? "Mostrando todo" : "Mostrar todo"}
+          </button>
         </div>
       </div>
 
