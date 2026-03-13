@@ -22,8 +22,8 @@ const TEAM_PRESETS = {
     teams: [
       { name: "Ronin", color: "bg-red-500", textColor: "text-white", max: 1, icon: "Swords" },
       { name: "Shogun", color: "bg-amber-400", textColor: "text-amber-900", max: 1, icon: "Crown" },
-      { name: "Samurai", color: "bg-amber-400", textColor: "text-amber-900", icon: "SamuraiHelmet" },
-      { name: "Ninja", color: "bg-blue-500", textColor: "text-white", icon: "Star" },
+      { name: "Samurai", color: "bg-amber-400", textColor: "text-amber-900", icon: "Kabuto" },
+      { name: "Ninja", color: "bg-blue-500", textColor: "text-white", icon: "Shuriken" },
     ],
     // Distribution per player count: [Ronin, Shogun, Samurai, Ninja]
     distribution: {
