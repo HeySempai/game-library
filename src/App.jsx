@@ -307,7 +307,7 @@ function App() {
             <div className="w-px h-6 bg-gray-200 shrink-0" />
 
             {/* Time pills */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Clock size={15} className="text-gray-400 shrink-0" />
               {[15, 30, 60, 180].map((t, i) => {
                 const label = t === 180 ? "180+" : `${t}`;
