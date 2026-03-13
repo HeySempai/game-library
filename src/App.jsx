@@ -281,7 +281,7 @@ function App() {
             </div>
 
             {/* Separator */}
-            <div className="w-px h-6 bg-gray-200" />
+            <div className="w-px h-6 bg-gray-200 shrink-0" />
 
             {/* Player range pills */}
             <div className="flex items-center gap-2">
