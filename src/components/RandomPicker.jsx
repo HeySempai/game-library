@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
-import { X, Dices, Users, Clock, RotateCcw, Route } from "lucide-react";
+import { X, Dices, Users, Clock, RotateCcw, Route, Package } from "lucide-react";
 import { parseDuration } from "../utils/storage";
 import { categoryMap, allCategories } from "../data/categories";
+import { loadRngDisabled } from "./SettingsPanel";
 
 const categoryColors = {
   "Party Game": { active: "bg-pink-500 text-white", inactive: "bg-pink-100 text-pink-600" },
