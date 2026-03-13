@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { X, ArrowLeft, Dices, Users, Clock, RotateCcw } from "lucide-react";
 import { categoryMap, allCategories } from "../data/categories";
 import { playClick, playTick, playSuccess, playPop } from "../utils/sounds";
+import { loadRngDisabled } from "./SettingsPanel";
 
 const categoryColors = {
   "Party Game": { bg: "bg-pink-500", inactive: "bg-gray-200 text-gray-400" },
@@ -26,9 +27,10 @@ function getEffectiveMax(game, allGames) {
   return max;
 }
 
-function filterEligible(games, playerCount, activeCategories) {
+function filterEligible(games, playerCount, activeCategories, rngDisabled) {
   const baseGames = games.filter((g) => g.tipo === "Juego Base");
   return baseGames.filter((game) => {
+    if (rngDisabled.has(game.id)) return false;
     // Player count filter
     const effectiveMax = getEffectiveMax(game, games);
     if (playerCount >= 7) {
@@ -101,6 +103,7 @@ export default function QuickPicker({ games, onClose }) {
   const [playerCount, setPlayerCount] = useState(null);
   // All categories start active - deactivating removes them
   const [deactivated, setDeactivated] = useState(new Set());
+  const rngDisabled = loadRngDisabled();
   const [spinning, setSpinning] = useState(false);
   const [currentName, setCurrentName] = useState("");
   const [result, setResult] = useState(null);
@@ -110,7 +113,7 @@ export default function QuickPicker({ games, onClose }) {
     allCategories.filter((cat) => !deactivated.has(cat))
   );
 
-  const eligible = filterEligible(games, playerCount, activeCategories);
+  const eligible = filterEligible(games, playerCount, activeCategories, rngDisabled);
 
   const toggleCategory = (cat) => {
     setDeactivated((prev) => {

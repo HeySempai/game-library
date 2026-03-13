@@ -1,4 +1,4 @@
-import { X, Users, Clock, Building2, User } from "lucide-react";
+import { X, Users, Clock, Building2, User, Pencil } from "lucide-react";
 import { ownersData } from "../data/owners";
 
 const avatarMap = {};
@@ -21,7 +21,7 @@ const categoryColors = {
   "Card Game": "bg-indigo-500",
 };
 
-export default function GameDetail({ game, expansions, allGames, category, onClose }) {
+export default function GameDetail({ game, expansions, allGames, category, onClose, onEdit }) {
   if (!game) return null;
 
   const parent = game.parentId ? allGames.find((g) => g.id === game.parentId) : null;
@@ -31,9 +31,16 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
       <div className="bg-white rounded-t-2xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {/* Cover */}
         <div className="relative bg-gray-50 p-5 sm:p-8 flex justify-center rounded-t-2xl">
-          <button onClick={onClose} className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white text-gray-500 transition-colors cursor-pointer z-10 shadow-sm">
-            <X size={18} />
-          </button>
+          <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+            {onEdit && (
+              <button onClick={onEdit} className="p-2 rounded-full bg-white/80 hover:bg-white text-gray-500 transition-colors cursor-pointer shadow-sm">
+                <Pencil size={16} />
+              </button>
+            )}
+            <button onClick={onClose} className="p-2 rounded-full bg-white/80 hover:bg-white text-gray-500 transition-colors cursor-pointer shadow-sm">
+              <X size={18} />
+            </button>
+          </div>
           {game.imageUrl ? (
             <img
               src={game.imageUrl}

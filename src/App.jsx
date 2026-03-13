@@ -14,6 +14,8 @@ import {
   Menu,
   SlidersHorizontal,
   ChevronDown,
+  Settings,
+  Eye,
 } from "lucide-react";
 import { initialGames } from "./data/games";
 import { imageMap } from "./data/images";
@@ -36,6 +38,8 @@ import RandomPicker from "./components/RandomPicker";
 import Leaderboard from "./components/Leaderboard";
 import OwnersPanel from "./components/OwnersPanel";
 import DiceRoller from "./components/DiceRoller";
+import EditGameForm from "./components/EditGameForm";
+import SettingsPanel from "./components/SettingsPanel";
 
 function App() {
   const [games, setGames] = useState(() => {
@@ -58,6 +62,9 @@ function App() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showOwners, setShowOwners] = useState(false);
   const [showDice, setShowDice] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [editingGame, setEditingGame] = useState(null);
+  const [showAll, setShowAll] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOwner, setFilterOwner] = useState("all");
@@ -107,16 +114,20 @@ function App() {
     { label: "6+", min: 6, max: 99 },
   ];
 
+  const displayableGames = useMemo(() => {
+    return showAll ? games : baseGames;
+  }, [games, baseGames, showAll]);
+
   const filteredGames = useMemo(() => {
-    return baseGames.filter((game) => {
+    return displayableGames.filter((game) => {
       const q = searchQuery.toLowerCase();
       if (q && !game.nombre.toLowerCase().includes(q) && !game.developer.toLowerCase().includes(q)) return false;
       if (filterOwner !== "all" && !game.owners.includes(filterOwner)) return false;
       if (filterCategories.size > 0) {
-        const cat = categoryMap[game.id] || "Sin clasificar";
+        const cat = categoryMap[game.id] || (game.parentId ? categoryMap[game.parentId] : null) || "Sin clasificar";
         if (!filterCategories.has(cat)) return false;
       }
-      if (filterPlayerRange !== "all") {
+      if (filterPlayerRange !== "all" && game.tipo === "Juego Base") {
         const range = playerRanges.find((r) => r.label === filterPlayerRange);
         if (range) {
           const amps = games.filter((g) => g.parentId === game.id && g.tipo === "Ampliacion");
@@ -132,7 +143,7 @@ function App() {
       }
       return true;
     });
-  }, [baseGames, searchQuery, filterOwner, filterCategories, filterPlayerRange, filterTime]);
+  }, [displayableGames, searchQuery, filterOwner, filterCategories, filterPlayerRange, filterTime, showAll]);
 
   const navigateGame = useCallback((dir) => {
     if (!selectedGame) return;
@@ -147,13 +158,15 @@ function App() {
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "Escape") {
-        if (selectedGame) setSelectedGame(null);
+        if (editingGame) setEditingGame(null);
+        else if (selectedGame) setSelectedGame(null);
         else if (showAddForm) setShowAddForm(false);
         else if (showQuickPicker) setShowQuickPicker(false);
         else if (showMarathon) setShowMarathon(false);
         else if (showLeaderboard) setShowLeaderboard(false);
         else if (showOwners) setShowOwners(false);
         else if (showDice) setShowDice(false);
+        else if (showSettings) setShowSettings(false);
       }
       if (selectedGame) {
         if (e.key === "ArrowLeft") navigateGame(-1);
@@ -162,7 +175,7 @@ function App() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [selectedGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, navigateGame]);
+  }, [selectedGame, editingGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, showSettings, navigateGame]);
 
   const handleAddGame = (newGame) => {
     setGames((prev) => [...prev, newGame]);
@@ -170,8 +183,23 @@ function App() {
       if (!players.includes(owner)) setPlayers((prev) => [...prev, owner]);
     });
   };
+  const handleEditGame = (gameId, { owners, category }) => {
+    setGames((prev) =>
+      prev.map((g) => (g.id === gameId ? { ...g, owners } : g))
+    );
+    // Update categoryMap dynamically (it's imported but we store overrides in localStorage)
+    if (category) {
+      categoryMap[gameId] = category;
+    } else {
+      delete categoryMap[gameId];
+    }
+    // Update selected game if open
+    if (selectedGame?.id === gameId) {
+      setSelectedGame((prev) => ({ ...prev, owners }));
+    }
+  };
 
-  const handleAddVictory = async (victory) => {
+
     const saved = await addVictory(victory);
     if (saved) {
       setVictories((prev) => [saved, ...prev]);
@@ -259,6 +287,9 @@ function App() {
               <button onClick={() => setShowLeaderboard(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Leaderboard">
                 <Trophy size={18} />
               </button>
+              <button onClick={() => setShowSettings(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Configuración">
+                <Settings size={18} />
+              </button>
               <button onClick={() => setShowAddForm(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium transition-colors cursor-pointer">
                 <Plus size={16} />
                 <span>Agregar</span>
@@ -275,6 +306,7 @@ function App() {
                 { label: "Maratón", icon: Route, action: () => { setShowMarathon(true); setShowMobileMenu(false); } },
                 { label: "Dados", icon: Dices, action: () => { setShowDice(true); setShowMobileMenu(false); } },
                 { label: "Leaderboard", icon: Trophy, action: () => { setShowLeaderboard(true); setShowMobileMenu(false); } },
+                { label: "Configuración", icon: Settings, action: () => { setShowSettings(true); setShowMobileMenu(false); } },
               ].map((item, i) => (
                 <button
                   key={item.label}
@@ -489,16 +521,29 @@ function App() {
 
       {/* Stats */}
       <div className="max-w-[90rem] mx-auto px-3 sm:px-5 py-2 sm:py-3">
-        <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-gray-400 tracking-wide uppercase">
-          <span>
-            {filteredGames.length === baseGames.length
-              ? `${baseGames.length} juegos`
-              : `${filteredGames.length} de ${baseGames.length}`}
-          </span>
-          <span>·</span>
-          <span>{games.length - baseGames.length} expansiones</span>
-          <span>·</span>
-          <span>{victories.length} partidas</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-gray-400 tracking-wide uppercase">
+            <span>
+              {filteredGames.length === displayableGames.length
+                ? `${displayableGames.length} ${showAll ? "items" : "juegos"}`
+                : `${filteredGames.length} de ${displayableGames.length}`}
+            </span>
+            <span>·</span>
+            <span>{games.length - baseGames.length} expansiones</span>
+            <span>·</span>
+            <span>{victories.length} partidas</span>
+          </div>
+          <button
+            onClick={() => setShowAll((v) => !v)}
+            className={`flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
+              showAll
+                ? "bg-orange-500 text-white"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            <Eye size={12} />
+            {showAll ? "Mostrando todo" : "Mostrar todo"}
+          </button>
         </div>
       </div>
 
@@ -527,7 +572,22 @@ function App() {
 
       {/* Modals */}
       {selectedGame && (
-        <GameDetail game={selectedGame} expansions={getExpansions(selectedGame.id)} allGames={games} category={categoryMap[selectedGame.id]} onClose={() => setSelectedGame(null)} />
+        <GameDetail
+          game={selectedGame}
+          expansions={getExpansions(selectedGame.id)}
+          allGames={games}
+          category={categoryMap[selectedGame.id]}
+          onClose={() => setSelectedGame(null)}
+          onEdit={() => setEditingGame(selectedGame)}
+        />
+      )}
+      {editingGame && (
+        <EditGameForm
+          game={editingGame}
+          players={players}
+          onSave={(changes) => handleEditGame(editingGame.id, changes)}
+          onClose={() => setEditingGame(null)}
+        />
       )}
       {showAddForm && <AddGameForm games={games} players={players} onAdd={handleAddGame} onClose={() => setShowAddForm(false)} />}
       {showQuickPicker && <QuickPicker games={games} onClose={() => setShowQuickPicker(false)} />}
@@ -535,6 +595,7 @@ function App() {
       {showLeaderboard && <Leaderboard victories={victories} games={games} players={players} onAddVictory={handleAddVictory} onClose={() => setShowLeaderboard(false)} />}
       {showOwners && <OwnersPanel ownersData={ownersData} games={games} victories={victories} onClose={() => setShowOwners(false)} />}
       {showDice && <DiceRoller onClose={() => setShowDice(false)} />}
+      {showSettings && <SettingsPanel games={games} onClose={() => setShowSettings(false)} />}
     </div>
   );
 }

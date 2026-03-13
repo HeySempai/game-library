@@ -111,11 +111,18 @@ export default function GameCard({ game, allGames, expansions, category, onClick
 
           {/* Info */}
           <div className="relative pt-3">
-            {category && (
-              <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full text-white mb-1.5 ${categoryColors[category]}`}>
-                {category}
-              </span>
-            )}
+            <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+              {game.tipo !== "Juego Base" && (
+                <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full text-white ${game.tipo === "Ampliacion" ? "bg-amber-500" : "bg-sky-500"}`}>
+                  {game.tipo === "Ampliacion" ? "AMP" : "EXP"}
+                </span>
+              )}
+              {category && (
+                <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full text-white ${categoryColors[category]}`}>
+                  {category}
+                </span>
+              )}
+            </div>
             <h3 className="font-semibold text-xs sm:text-sm text-gray-900 truncate leading-snug">
               {game.nombre}
             </h3>
