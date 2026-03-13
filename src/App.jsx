@@ -259,7 +259,7 @@ function App() {
             <div className="w-px h-6 bg-gray-200 shrink-0" />
 
             {/* Category pills */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Shapes size={15} className="text-gray-400 shrink-0" />
               {allCategories.map((cat) => {
                 const active = filterCategories.has(cat);
