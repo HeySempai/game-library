@@ -10,6 +10,7 @@ import {
   Shapes,
   Zap,
   Route,
+  Dices,
 } from "lucide-react";
 import { initialGames } from "./data/games";
 import { imageMap } from "./data/images";
@@ -31,7 +32,7 @@ import QuickPicker from "./components/QuickPicker";
 import RandomPicker from "./components/RandomPicker";
 import Leaderboard from "./components/Leaderboard";
 import OwnersPanel from "./components/OwnersPanel";
-
+import DiceRoller from "./components/DiceRoller";
 
 function App() {
   const [games, setGames] = useState(() => {
@@ -53,7 +54,7 @@ function App() {
   const [showMarathon, setShowMarathon] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showOwners, setShowOwners] = useState(false);
-
+  const [showDice, setShowDice] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOwner, setFilterOwner] = useState("all");
@@ -147,7 +148,7 @@ function App() {
         else if (showMarathon) setShowMarathon(false);
         else if (showLeaderboard) setShowLeaderboard(false);
         else if (showOwners) setShowOwners(false);
-      }
+        else if (showDice) setShowDice(false);
       if (selectedGame) {
         if (e.key === "ArrowLeft") navigateGame(-1);
         if (e.key === "ArrowRight") navigateGame(1);
@@ -219,6 +220,9 @@ function App() {
               </button>
               <button onClick={() => setShowMarathon(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Maratón">
                 <Route size={18} />
+              </button>
+              <button onClick={() => setShowDice(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Dados">
+                <Dices size={18} />
               </button>
               <button onClick={() => setShowLeaderboard(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Leaderboard">
                 <Trophy size={18} />
@@ -380,6 +384,7 @@ function App() {
       {showMarathon && <RandomPicker games={games} onClose={() => setShowMarathon(false)} />}
       {showLeaderboard && <Leaderboard victories={victories} games={games} players={players} onAddVictory={handleAddVictory} onClose={() => setShowLeaderboard(false)} />}
       {showOwners && <OwnersPanel ownersData={ownersData} games={games} victories={victories} onClose={() => setShowOwners(false)} />}
+      {showDice && <DiceRoller onClose={() => setShowDice(false)} />}
     </div>
   );
 }

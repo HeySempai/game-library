@@ -24,3 +24,34 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
+@keyframes dice-roll {
+  0% { transform: scale(0.3) rotate(0deg); opacity: 0; }
+  40% { transform: scale(1.15) rotate(180deg); opacity: 1; }
+  70% { transform: scale(0.95) rotate(300deg); }
+  100% { transform: scale(1) rotate(360deg); opacity: 1; }
+}
+
+@keyframes dice-land {
+  0% { transform: scale(1.2); opacity: 0; }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes coin-flip {
+  0% { transform: rotateY(0deg) scale(0.5); opacity: 0; }
+  50% { transform: rotateY(540deg) scale(1.1); opacity: 1; }
+  100% { transform: rotateY(720deg) scale(1); }
+}
+
+.animate-dice-roll {
+  animation: dice-roll 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-dice-land {
+  animation: dice-land 0.3s ease-out both;
+}
+
+.animate-coin-flip {
+  animation: coin-flip 0.6s ease-out both;
+}
