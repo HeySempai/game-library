@@ -382,7 +382,7 @@ const _games = [
     id: "casting-shadows",
     tipo: "Juego Base",
     nombre: "Casting Shadows",
-    duracion: "30-60 mins",
+    duracion: "60 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
