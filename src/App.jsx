@@ -64,6 +64,8 @@ function App() {
   const [filterCategories, setFilterCategories] = useState(new Set());
   const [filterPlayerRange, setFilterPlayerRange] = useState("all");
   const [filterTime, setFilterTime] = useState(0);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   useEffect(() => saveGames(games), [games]);
   useEffect(() => savePlayers(players), [players]);
