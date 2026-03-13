@@ -114,16 +114,20 @@ function App() {
     { label: "6+", min: 6, max: 99 },
   ];
 
+  const displayableGames = useMemo(() => {
+    return showAll ? games : baseGames;
+  }, [games, baseGames, showAll]);
+
   const filteredGames = useMemo(() => {
-    return baseGames.filter((game) => {
+    return displayableGames.filter((game) => {
       const q = searchQuery.toLowerCase();
       if (q && !game.nombre.toLowerCase().includes(q) && !game.developer.toLowerCase().includes(q)) return false;
       if (filterOwner !== "all" && !game.owners.includes(filterOwner)) return false;
       if (filterCategories.size > 0) {
-        const cat = categoryMap[game.id] || "Sin clasificar";
+        const cat = categoryMap[game.id] || (game.parentId ? categoryMap[game.parentId] : null) || "Sin clasificar";
         if (!filterCategories.has(cat)) return false;
       }
-      if (filterPlayerRange !== "all") {
+      if (filterPlayerRange !== "all" && game.tipo === "Juego Base") {
         const range = playerRanges.find((r) => r.label === filterPlayerRange);
         if (range) {
           const amps = games.filter((g) => g.parentId === game.id && g.tipo === "Ampliacion");
@@ -139,7 +143,7 @@ function App() {
       }
       return true;
     });
-  }, [baseGames, searchQuery, filterOwner, filterCategories, filterPlayerRange, filterTime]);
+  }, [displayableGames, searchQuery, filterOwner, filterCategories, filterPlayerRange, filterTime, showAll]);
 
   const navigateGame = useCallback((dir) => {
     if (!selectedGame) return;
