@@ -66,10 +66,11 @@ export default function RandomPicker({ games, onClose }) {
   const [playerRange, setPlayerRange] = useState(null);
   const [activeCategories, setActiveCategories] = useState(new Set());
   const [marathon, setMarathon] = useState(null);
+  const rngDisabled = useMemo(() => loadRngDisabled(), []);
 
   const eligible = useMemo(
-    () => filterEligible(games, playerRange, activeCategories),
-    [games, playerRange, activeCategories]
+    () => filterEligible(games, playerRange, activeCategories, rngDisabled),
+    [games, playerRange, activeCategories, rngDisabled]
   );
 
   const toggleCategory = (cat) => {
