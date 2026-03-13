@@ -150,7 +150,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     const count = Math.min(players.length, max);
     return players.slice(0, count).map((p, idx) => ({
       playerName: p, score: "", isWinner: false,
-      team: teams ? assignTeam(idx, teams, count, preset) : "",
+      team: "",
     }));
   }, []);
   const [participants, setParticipants] = useState(initialPlayers);
@@ -164,7 +164,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     const count = Math.min(players.length, newMax);
     setParticipants(players.slice(0, count).map((p, idx) => ({
       playerName: p, score: "", isWinner: false,
-      team: newTeams ? assignTeam(idx, newTeams, count) : "",
+      team: "",
     })));
   };
 
@@ -271,7 +271,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     const newIdx = participants.length;
     setParticipants([...participants, {
       playerName: "", score: "", isWinner: false, isGuest: true,
-      team: activeTeams ? assignTeam(newIdx, activeTeams, participants.length + 1, preset) : "",
+      team: "",
     }]);
   };
 
@@ -280,7 +280,12 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   };
 
   const updateParticipant = (i, field, value) => {
-    setParticipants(participants.map((p, idx) => idx === i ? { ...p, [field]: value } : p));
+    setParticipants(participants.map((p, idx) => {
+      if (idx !== i) return p;
+      // Toggle off if clicking the same team
+      if (field === "team" && p.team === value) return { ...p, team: "" };
+      return { ...p, [field]: value };
+    }));
   };
 
   const togglePlayer = (playerName) => {
@@ -290,7 +295,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
       const newIdx = participants.length;
       setParticipants([...participants, {
         playerName, score: "", isWinner: false,
-        team: activeTeams ? assignTeam(newIdx, activeTeams) : "",
+        team: "",
       }]);
     }
   };
