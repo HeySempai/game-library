@@ -613,7 +613,7 @@ const _games = [
     id: "what-do-you-meme",
     tipo: "Juego Base",
     nombre: "What Do You Meme?",
-    duracion: "30-90 mins",
+    duracion: "30 mins",
     minJugadores: 3,
     maxJugadores: 20,
     jugadoresDisplay: "3-20",
