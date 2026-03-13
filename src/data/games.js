@@ -249,7 +249,7 @@ const _games = [
     id: "virus",
     tipo: "Juego Base",
     nombre: "Virus",
-    duracion: "20 mins",
+    duracion: "15-30 mins",
     minJugadores: 2,
     maxJugadores: 6,
     jugadoresDisplay: "2-6",
