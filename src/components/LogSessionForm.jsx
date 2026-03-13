@@ -174,48 +174,93 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const teamValidation = useMemo(() => {
     const teams = activeTeams;
     const presetConfig = preset;
-    if (!teams) return { valid: true, errors: [] };
-
-    const validParticipants = participants.filter((p) => p.playerName.trim());
-    const playerCount = validParticipants.length;
     const errors = [];
 
-    // Check distribution constraints if available
-    const dist = presetConfig?.distribution?.[playerCount];
-    if (dist) {
-      teams.forEach((t, ti) => {
-        const expected = dist[ti];
-        const actual = validParticipants.filter((p) => p.team === t.name).length;
-        if (expected > 0 && actual !== expected) {
-          errors.push(`${t.name}: debe haber ${expected}, hay ${actual}`);
+    if (teams) {
+      const validParticipants = participants.filter((p) => p.playerName.trim());
+      const playerCount = validParticipants.length;
+
+      // Check distribution constraints if available
+      const dist = presetConfig?.distribution?.[playerCount];
+      if (dist) {
+        teams.forEach((t, ti) => {
+          const expected = dist[ti];
+          const actual = validParticipants.filter((p) => p.team === t.name).length;
+          if (expected > 0 && actual !== expected) {
+            errors.push(`${t.name}: debe haber ${expected}, hay ${actual}`);
+          }
+          if (expected === 0 && actual > 0) {
+            errors.push(`${t.name}: no aplica con ${playerCount} jugadores`);
+          }
+        });
+      } else if (activeFormat?.maxPlayers && teams.length > 0) {
+        // Format-based: each team must have equal players (maxPlayers / teams)
+        const perTeam = Math.floor(activeFormat.maxPlayers / teams.length);
+        if (playerCount !== activeFormat.maxPlayers) {
+          errors.push(`Se necesitan exactamente ${activeFormat.maxPlayers} jugadores`);
         }
-        if (expected === 0 && actual > 0) {
-          errors.push(`${t.name}: no aplica con ${playerCount} jugadores`);
-        }
-      });
-    } else if (presetConfig?.requireAllTeams) {
-      // Fallback: all teams must be represented
+        teams.forEach((t) => {
+          const count = validParticipants.filter((p) => p.team === t.name).length;
+          if (count !== perTeam) errors.push(`${t.name}: debe tener ${perTeam}, tiene ${count}`);
+        });
+      } else if (presetConfig?.requireAllTeams) {
+        teams.forEach((t) => {
+          const count = validParticipants.filter((p) => p.team === t.name).length;
+          if (count === 0) errors.push(`Falta asignar: ${t.name}`);
+          if (t.max && count > t.max) errors.push(`${t.name}: máximo ${t.max}`);
+        });
+      }
+
+      // Always check max constraints
       teams.forEach((t) => {
-        const count = validParticipants.filter((p) => p.team === t.name).length;
-        if (count === 0) errors.push(`Falta asignar: ${t.name}`);
-        if (t.max && count > t.max) errors.push(`${t.name}: máximo ${t.max}`);
+        if (t.max) {
+          const count = validParticipants.filter((p) => p.team === t.name).length;
+          if (count > t.max) errors.push(`${t.name}: máximo ${t.max}`);
+        }
       });
+
+      // Check no unassigned players
+      const unassigned = validParticipants.filter((p) => !p.team);
+      if (unassigned.length > 0) errors.push(`${unassigned.length} jugador(es) sin equipo`);
     }
 
-    // Always check max constraints
-    teams.forEach((t) => {
-      if (t.max) {
-        const count = validParticipants.filter((p) => p.team === t.name).length;
-        if (count > t.max) errors.push(`${t.name}: máximo ${t.max}`);
-      }
-    });
+    return { valid: errors.length === 0, errors };
+  }, [participants, activeTeams, preset, activeFormat]);
 
-    // Check no unassigned players
-    const unassigned = validParticipants.filter((p) => !p.team);
-    if (unassigned.length > 0) errors.push(`${unassigned.length} jugador(es) sin facción`);
+  // Global form validation
+  const formValidation = useMemo(() => {
+    const errors = [];
+    const validParticipants = participants.filter((p) => p.playerName.trim());
+
+    // Duration required
+    if (!durationMinutes || parseInt(durationMinutes) <= 0) {
+      errors.push("Duración requerida");
+    }
+
+    // Players required (except no_winner)
+    if (victoryType !== "no_winner" && validParticipants.length === 0) {
+      errors.push("Agrega al menos un jugador");
+    }
+
+    // Winner required for absolute_winner and team_winner
+    if (victoryType === "absolute_winner" || victoryType === "team_winner") {
+      const hasWinner = validParticipants.some((p) => p.isWinner);
+      if (!hasWinner) errors.push("Selecciona un ganador");
+    }
+
+    // Cooperative must have result
+    if (victoryType === "cooperative" && cooperativeWin === null) {
+      errors.push("Selecciona victoria o derrota");
+    }
+
+    // Score-based: at least one score required
+    if (isScoreBased) {
+      const hasScore = validParticipants.some((p) => p.score !== "");
+      if (!hasScore) errors.push("Ingresa al menos un puntaje");
+    }
 
     return { valid: errors.length === 0, errors };
-  }, [participants, activeTeams, preset]);
+  }, [participants, durationMinutes, victoryType, cooperativeWin, isScoreBased]);
 
   // Already-selected player names
   const usedNames = participants.map((p) => p.playerName).filter(Boolean);
@@ -549,12 +594,12 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
             </div>
           )}
 
-          {/* Team validation errors */}
-          {!teamValidation.valid && (
+          {/* Validation errors */}
+          {(!teamValidation.valid || !formValidation.valid) && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3">
-              <p className="text-xs font-semibold text-red-600 mb-1">⚠️ Asignación de facciones incompleta:</p>
+              <p className="text-xs font-semibold text-red-600 mb-1">⚠️ No se puede registrar:</p>
               <ul className="text-xs text-red-500 space-y-0.5">
-                {teamValidation.errors.map((err, i) => (
+                {[...teamValidation.errors, ...formValidation.errors].map((err, i) => (
                   <li key={i}>• {err}</li>
                 ))}
               </ul>
@@ -575,14 +620,19 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
               className="w-full bg-white border border-gray-200 rounded-xl px-3 py-3 text-gray-700 text-sm focus:border-orange-400 focus:outline-none resize-none" />
           </div>
 
-          <button type="submit" disabled={!teamValidation.valid}
-            className={`w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 text-base ${
-              teamValidation.valid
-                ? "bg-orange-500 hover:bg-orange-400 text-white cursor-pointer"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}>
-            <Save size={18} /> Registrar Partida
-          </button>
+          {(() => {
+            const canSubmit = teamValidation.valid && formValidation.valid;
+            return (
+              <button type="submit" disabled={!canSubmit}
+                className={`w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 text-base ${
+                  canSubmit
+                    ? "bg-orange-500 hover:bg-orange-400 text-white cursor-pointer"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}>
+                <Save size={18} /> Registrar Partida
+              </button>
+            );
+          })()}
         </form>
       </div>
     </div>
