@@ -158,13 +158,15 @@ function App() {
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "Escape") {
-        if (selectedGame) setSelectedGame(null);
+        if (editingGame) setEditingGame(null);
+        else if (selectedGame) setSelectedGame(null);
         else if (showAddForm) setShowAddForm(false);
         else if (showQuickPicker) setShowQuickPicker(false);
         else if (showMarathon) setShowMarathon(false);
         else if (showLeaderboard) setShowLeaderboard(false);
         else if (showOwners) setShowOwners(false);
         else if (showDice) setShowDice(false);
+        else if (showSettings) setShowSettings(false);
       }
       if (selectedGame) {
         if (e.key === "ArrowLeft") navigateGame(-1);
@@ -173,7 +175,7 @@ function App() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [selectedGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, navigateGame]);
+  }, [selectedGame, editingGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, showSettings, navigateGame]);
 
   const handleAddGame = (newGame) => {
     setGames((prev) => [...prev, newGame]);
