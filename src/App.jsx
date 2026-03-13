@@ -572,7 +572,22 @@ function App() {
 
       {/* Modals */}
       {selectedGame && (
-        <GameDetail game={selectedGame} expansions={getExpansions(selectedGame.id)} allGames={games} category={categoryMap[selectedGame.id]} onClose={() => setSelectedGame(null)} />
+        <GameDetail
+          game={selectedGame}
+          expansions={getExpansions(selectedGame.id)}
+          allGames={games}
+          category={categoryMap[selectedGame.id]}
+          onClose={() => setSelectedGame(null)}
+          onEdit={() => setEditingGame(selectedGame)}
+        />
+      )}
+      {editingGame && (
+        <EditGameForm
+          game={editingGame}
+          players={players}
+          onSave={(changes) => handleEditGame(editingGame.id, changes)}
+          onClose={() => setEditingGame(null)}
+        />
       )}
       {showAddForm && <AddGameForm games={games} players={players} onAdd={handleAddGame} onClose={() => setShowAddForm(false)} />}
       {showQuickPicker && <QuickPicker games={games} onClose={() => setShowQuickPicker(false)} />}
@@ -580,6 +595,7 @@ function App() {
       {showLeaderboard && <Leaderboard victories={victories} games={games} players={players} onAddVictory={handleAddVictory} onClose={() => setShowLeaderboard(false)} />}
       {showOwners && <OwnersPanel ownersData={ownersData} games={games} victories={victories} onClose={() => setShowOwners(false)} />}
       {showDice && <DiceRoller onClose={() => setShowDice(false)} />}
+      {showSettings && <SettingsPanel games={games} onClose={() => setShowSettings(false)} />}
     </div>
   );
 }
