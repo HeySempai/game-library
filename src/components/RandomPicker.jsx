@@ -33,9 +33,10 @@ function getEffectiveMax(game, allGames) {
   return max;
 }
 
-function filterEligible(games, playerRange, activeCategories) {
+function filterEligible(games, playerRange, activeCategories, rngDisabled) {
   const baseGames = games.filter((g) => g.tipo === "Juego Base");
   return baseGames.filter((game) => {
+    if (rngDisabled.has(game.id)) return false;
     if (playerRange) {
       const effectiveMax = getEffectiveMax(game, games);
       const fitsRange = game.minJugadores <= playerRange.max && effectiveMax >= playerRange.min;
