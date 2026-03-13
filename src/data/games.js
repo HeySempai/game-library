@@ -418,7 +418,7 @@ const _games = [
     id: "saboteur",
     tipo: "Juego Base",
     nombre: "Saboteur",
-    duracion: "30 mins",
+    duracion: "15 mins",
     minJugadores: 3,
     maxJugadores: 10,
     jugadoresDisplay: "3-10",
