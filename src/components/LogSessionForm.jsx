@@ -266,12 +266,11 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const usedNames = participants.map((p) => p.playerName).filter(Boolean);
   const canAddMore = participants.length < effectiveMaxPlayers;
 
-  const addParticipant = () => {
+  const addGuestParticipant = () => {
     if (!canAddMore) return;
-    const available = players.filter((p) => !usedNames.includes(p));
     const newIdx = participants.length;
     setParticipants([...participants, {
-      playerName: available[0] || "", score: "", isWinner: false,
+      playerName: "", score: "", isWinner: false, isGuest: true,
       team: activeTeams ? assignTeam(newIdx, activeTeams, participants.length + 1, preset) : "",
     }]);
   };
@@ -502,21 +501,34 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
               </div>
 
               {/* Active participants detail rows */}
-              {participants.filter((p) => p.playerName).length > 0 && (
+              {participants.length > 0 && (
                 <div className="space-y-2">
                   {participants.map((p, i) => {
-                    if (!p.playerName) return null;
+                    if (!p.playerName && !p.isGuest) return null;
                     return (
-                      <div key={p.playerName} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
-                        {avatarMap[p.playerName] ? (
-                          <img src={avatarMap[p.playerName]} alt={p.playerName}
-                            className="w-9 h-9 rounded-full object-cover" width={36} height={36} decoding="async" />
+                      <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
+                        {p.isGuest ? (
+                          <>
+                            <span className="w-9 h-9 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-bold shrink-0">
+                              {p.playerName ? p.playerName.charAt(0).toUpperCase() : "?"}
+                            </span>
+                            <input type="text" value={p.playerName} onChange={(e) => updateParticipant(i, "playerName", e.target.value)}
+                              placeholder="Nombre del invitado"
+                              className="flex-1 bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-700 focus:border-orange-400 focus:outline-none" />
+                          </>
                         ) : (
-                          <span className="w-9 h-9 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-bold">
-                            {p.playerName.charAt(0)}
-                          </span>
+                          <>
+                            {avatarMap[p.playerName] ? (
+                              <img src={avatarMap[p.playerName]} alt={p.playerName}
+                                className="w-9 h-9 rounded-full object-cover" width={36} height={36} decoding="async" />
+                            ) : (
+                              <span className="w-9 h-9 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-bold">
+                                {p.playerName.charAt(0)}
+                              </span>
+                            )}
+                            <span className="text-sm font-medium text-gray-700 flex-1">{p.playerName.split(" ")[0]}</span>
+                          </>
                         )}
-                        <span className="text-sm font-medium text-gray-700 flex-1">{p.playerName.split(" ")[0]}</span>
 
                         {isScoreBased && (
                           <input type="number" value={p.score} onChange={(e) => updateParticipant(i, "score", e.target.value)}
@@ -591,7 +603,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
 
               {/* Add guest player button */}
               {canAddMore && (
-                <button type="button" onClick={addParticipant}
+                <button type="button" onClick={addGuestParticipant}
                   className="w-full mt-3 py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 hover:border-orange-300 hover:text-orange-500 transition-colors flex items-center justify-center gap-2 text-sm font-medium cursor-pointer">
                   <UserPlus size={16} /> Añadir jugador invitado
                 </button>
