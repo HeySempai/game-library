@@ -52,16 +52,16 @@ export default function GameCard({ game, allGames, expansions, category, onClick
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="relative rounded-xl sm:rounded-2xl p-[1.5px] overflow-hidden transition-all duration-300"
+        className="relative rounded-xl sm:rounded-2xl p-[2.5px] overflow-hidden transition-all duration-300"
         style={{ background: isHovered ? undefined : '#ffffff' }}
       >
         {/* Animated rotating gradient border */}
         <div
-          className="absolute inset-[-50%] transition-opacity duration-300 pointer-events-none"
+          className="absolute inset-[-50%] transition-opacity duration-300 pointer-events-none blur-[3px]"
           style={{
             opacity: isHovered ? 1 : 0,
             background: 'conic-gradient(from 0deg, #ff8c00, #fff4e0, #ff6b00, #ffffff, #ffaa33, #fff8ee, #ff5500, #ffe0b2, #ff8c00)',
-            animation: isHovered ? 'spin-border 2.5s linear infinite' : 'none',
+            animation: isHovered ? 'spin-border 5s linear infinite' : 'none',
           }}
         />
 
@@ -70,12 +70,12 @@ export default function GameCard({ game, allGames, expansions, category, onClick
           className="absolute inset-0 rounded-xl sm:rounded-2xl transition-opacity duration-300 pointer-events-none"
           style={{
             opacity: isHovered ? 1 : 0,
-            background: `radial-gradient(350px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,255,255,0.9), rgba(255,160,50,0.5) 40%, transparent 70%)`,
+            background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,255,255,0.95), rgba(255,150,40,0.6) 35%, transparent 65%)`,
           }}
         />
 
         {/* Inner card */}
-        <div className="relative bg-white rounded-[10px] sm:rounded-[14px] p-3 sm:p-4 pb-3 sm:pb-4 transition-colors duration-300 overflow-hidden">
+        <div className="relative bg-white rounded-[9px] sm:rounded-[13px] p-3 sm:p-4 pb-3 sm:pb-4 transition-colors duration-300 overflow-hidden">
           {/* Subtle inner spotlight */}
           <div
             className="absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none"
