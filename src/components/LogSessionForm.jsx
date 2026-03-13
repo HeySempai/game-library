@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { X, Plus, Trash2, Trophy, Save, Check, Package, Swords, Crown, Shield, EyeOff } from "lucide-react";
+import { X, Plus, Trash2, Trophy, Save, Check, Package, Swords, Crown, Shield, Star, UserPlus } from "lucide-react";
 import { ownersData } from "../data/owners";
 import { getEffectivePlayerRange } from "../utils/storage";
 
@@ -22,8 +22,8 @@ const TEAM_PRESETS = {
     teams: [
       { name: "Ronin", color: "bg-red-500", textColor: "text-white", max: 1, icon: "Swords" },
       { name: "Shogun", color: "bg-amber-400", textColor: "text-amber-900", max: 1, icon: "Crown" },
-      { name: "Samurai", color: "bg-amber-400", textColor: "text-amber-900", icon: "Shield" },
-      { name: "Ninja", color: "bg-blue-500", textColor: "text-white", icon: "EyeOff" },
+      { name: "Samurai", color: "bg-amber-400", textColor: "text-amber-900", icon: "SamuraiHelmet" },
+      { name: "Ninja", color: "bg-blue-500", textColor: "text-white", icon: "Star" },
     ],
     // Distribution per player count: [Ronin, Shogun, Samurai, Ninja]
     distribution: {
@@ -481,24 +481,33 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
 
                         {/* Team selector — only show when teams exist */}
                         {victoryType === "team_winner" && activeTeams && (
-                          <div className="flex gap-1">
+                          <div className="flex gap-1.5">
                             {activeTeams.map((t) => {
                               const countInTeam = participants.filter((pp) => pp.playerName && pp.team === t.name).length;
                               const isCurrentTeam = p.team === t.name;
                               const atMax = t.max && countInTeam >= t.max && !isCurrentTeam;
-                              const IconComp = t.icon ? { Swords, Crown, Shield, EyeOff }[t.icon] : null;
+                              const iconMap = { Swords, Crown, Star, Shield };
+                              const IconComp = t.icon && t.icon !== "SamuraiHelmet" ? iconMap[t.icon] : null;
+                              const isSamurai = t.icon === "SamuraiHelmet";
                               return (
                                 <button key={t.name} type="button"
                                   onClick={() => !atMax && updateParticipant(i, "team", t.name)}
                                   disabled={atMax}
-                                  title={`${t.name}${t.max ? ` (${countInTeam}/${t.max})` : ""}`}
-                                  className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 ${
+                                  title={t.name}
+                                  className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
                                     atMax ? "bg-gray-100 text-gray-300 cursor-not-allowed" :
-                                    isCurrentTeam ? `${t.color} ${t.textColor} shadow-sm cursor-pointer` : "bg-gray-200 text-gray-400 cursor-pointer"
+                                    isCurrentTeam ? `${t.color} ${t.textColor} shadow-md cursor-pointer ring-2 ring-offset-1 ring-current` : "bg-gray-200 text-gray-400 hover:bg-gray-300 cursor-pointer"
                                   }`}>
-                                  {IconComp ? <IconComp size={12} /> : null}
-                                  {!IconComp && (t.name.length > 10 ? t.name.split(" ")[0] : t.name)}
-                                  {t.max ? ` ${countInTeam}/${t.max}` : ""}
+                                  {IconComp && <IconComp size={18} />}
+                                  {isSamurai && (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M4 12c0-4 3.5-8 8-8s8 4 8 8" />
+                                      <path d="M2 12h20" />
+                                      <path d="M12 4v2" />
+                                      <path d="M7 8l1 4" />
+                                      <path d="M17 8l-1 4" />
+                                    </svg>
+                                  )}
                                 </button>
                               );
                             })}
@@ -528,6 +537,14 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                     );
                   })}
                 </div>
+              )}
+
+              {/* Add guest player button */}
+              {canAddMore && (
+                <button type="button" onClick={addParticipant}
+                  className="w-full mt-3 py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 hover:border-orange-300 hover:text-orange-500 transition-colors flex items-center justify-center gap-2 text-sm font-medium cursor-pointer">
+                  <UserPlus size={16} /> Añadir jugador invitado
+                </button>
               )}
             </div>
           )}
