@@ -298,7 +298,7 @@ const _games = [
     id: "boss-monster",
     tipo: "Juego Base",
     nombre: "Boss Monster",
-    duracion: "60-120 mins",
+    duracion: "90 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
