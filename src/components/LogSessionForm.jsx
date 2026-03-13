@@ -280,7 +280,12 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   };
 
   const updateParticipant = (i, field, value) => {
-    setParticipants(participants.map((p, idx) => idx === i ? { ...p, [field]: value } : p));
+    setParticipants(participants.map((p, idx) => {
+      if (idx !== i) return p;
+      // Toggle off if clicking the same team
+      if (field === "team" && p.team === value) return { ...p, team: "" };
+      return { ...p, [field]: value };
+    }));
   };
 
   const togglePlayer = (playerName) => {
