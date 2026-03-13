@@ -129,6 +129,29 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
 
   const isScoreBased = victoryType === "score_descending" || victoryType === "score_ascending";
 
+  // Team validation for presets with requireAllTeams (e.g. Samurai Sword)
+  const teamValidation = useMemo(() => {
+    const teams = activeTeams;
+    const presetConfig = preset;
+    if (!teams || !presetConfig?.requireAllTeams) return { valid: true, errors: [] };
+
+    const validParticipants = participants.filter((p) => p.playerName.trim());
+    const errors = [];
+
+    // Check all teams are represented
+    teams.forEach((t) => {
+      const count = validParticipants.filter((p) => p.team === t.name).length;
+      if (count === 0) errors.push(`Falta asignar: ${t.name}`);
+      if (t.max && count > t.max) errors.push(`${t.name}: máximo ${t.max}`);
+    });
+
+    // Check no unassigned players
+    const unassigned = validParticipants.filter((p) => !p.team);
+    if (unassigned.length > 0) errors.push(`${unassigned.length} jugador(es) sin facción`);
+
+    return { valid: errors.length === 0, errors };
+  }, [participants, activeTeams, preset]);
+
   // Already-selected player names
   const usedNames = participants.map((p) => p.playerName).filter(Boolean);
   const canAddMore = participants.length < effectiveMaxPlayers;
