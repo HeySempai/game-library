@@ -464,6 +464,18 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
             </div>
           )}
 
+          {/* Team validation errors */}
+          {!teamValidation.valid && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+              <p className="text-xs font-semibold text-red-600 mb-1">⚠️ Asignación de facciones incompleta:</p>
+              <ul className="text-xs text-red-500 space-y-0.5">
+                {teamValidation.errors.map((err, i) => (
+                  <li key={i}>• {err}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* No winner info */}
           {victoryType === "no_winner" && (
             <div className="bg-gray-50 rounded-xl p-4 text-center">
@@ -478,8 +490,12 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
               className="w-full bg-white border border-gray-200 rounded-xl px-3 py-3 text-gray-700 text-sm focus:border-orange-400 focus:outline-none resize-none" />
           </div>
 
-          <button type="submit"
-            className="w-full bg-orange-500 hover:bg-orange-400 text-white font-semibold py-3 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2 text-base">
+          <button type="submit" disabled={!teamValidation.valid}
+            className={`w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 text-base ${
+              teamValidation.valid
+                ? "bg-orange-500 hover:bg-orange-400 text-white cursor-pointer"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}>
             <Save size={18} /> Registrar Partida
           </button>
         </form>
