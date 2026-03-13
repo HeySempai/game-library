@@ -552,7 +552,7 @@ const _games = [
     id: "sequence",
     tipo: "Juego Base",
     nombre: "Sequence",
-    duracion: "10-30 mins",
+    duracion: "30 mins",
     minJugadores: 2,
     maxJugadores: 12,
     jugadoresDisplay: "2-12",
