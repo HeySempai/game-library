@@ -50,7 +50,7 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-xl font-bold text-gray-900">{game.nombre}</h2>
             {category && (
