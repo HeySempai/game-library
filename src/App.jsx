@@ -384,6 +384,7 @@ function App() {
       {showMarathon && <RandomPicker games={games} onClose={() => setShowMarathon(false)} />}
       {showLeaderboard && <Leaderboard victories={victories} games={games} players={players} onAddVictory={handleAddVictory} onClose={() => setShowLeaderboard(false)} />}
       {showOwners && <OwnersPanel ownersData={ownersData} games={games} victories={victories} onClose={() => setShowOwners(false)} />}
+      {showDice && <DiceRoller onClose={() => setShowDice(false)} />}
     </div>
   );
 }
