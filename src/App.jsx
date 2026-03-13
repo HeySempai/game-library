@@ -236,7 +236,7 @@ function App() {
           </div>
 
           {/* Filters */}
-          <div className="flex items-center gap-x-5 mt-3 pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-x-3 sm:gap-x-5 mt-3 pt-3 border-t border-gray-100 overflow-x-auto scrollbar-hide pb-1 -mb-1">
             {/* Owner avatars */}
             <div className="flex items-center gap-2 shrink-0">
               <UserCircle size={15} className="text-gray-400 shrink-0" />
