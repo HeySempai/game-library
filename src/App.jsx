@@ -221,6 +221,9 @@ function App() {
               <button onClick={() => setShowMarathon(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Maratón">
                 <Route size={18} />
               </button>
+              <button onClick={() => setShowDice(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Dados">
+                <Dices size={18} />
+              </button>
               <button onClick={() => setShowLeaderboard(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Leaderboard">
                 <Trophy size={18} />
               </button>
