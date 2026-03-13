@@ -745,7 +745,7 @@ const _games = [
     id: "samurai",
     tipo: "Juego Base",
     nombre: "Samurai",
-    duracion: "25-60 mins",
+    duracion: "90 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
