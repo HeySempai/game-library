@@ -213,7 +213,7 @@ const _games = [
     id: "sushi-go",
     tipo: "Juego Base",
     nombre: "Sushi Go Party!",
-    duracion: "20 mins",
+    duracion: "30 mins",
     minJugadores: 2,
     maxJugadores: 8,
     jugadoresDisplay: "2-8",
