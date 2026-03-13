@@ -73,7 +73,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [editingGame, setEditingGame] = useState(null);
   const [showAll, setShowAll] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOwner, setFilterOwner] = useState("all");
   const [filterCategories, setFilterCategories] = useState(new Set());
