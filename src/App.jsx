@@ -322,6 +322,7 @@ function App() {
                 { label: "Maratón", icon: Route, action: () => { setShowMarathon(true); setShowMobileMenu(false); } },
                 { label: "Dados", icon: Dices, action: () => { setShowDice(true); setShowMobileMenu(false); } },
                 { label: "Leaderboard", icon: Trophy, action: () => { setShowLeaderboard(true); setShowMobileMenu(false); } },
+                { label: "Historial", icon: History, action: () => { setShowHistory(true); setShowMobileMenu(false); } },
                 { label: "Configuración", icon: Settings, action: () => { setShowSettings(true); setShowMobileMenu(false); } },
               ].map((item, i) => (
                 <button
