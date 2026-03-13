@@ -11,6 +11,9 @@ import {
   Zap,
   Route,
   Dices,
+  Menu,
+  SlidersHorizontal,
+  ChevronDown,
 } from "lucide-react";
 import { initialGames } from "./data/games";
 import { imageMap } from "./data/images";
@@ -61,6 +64,8 @@ function App() {
   const [filterCategories, setFilterCategories] = useState(new Set());
   const [filterPlayerRange, setFilterPlayerRange] = useState("all");
   const [filterTime, setFilterTime] = useState(0);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   useEffect(() => saveGames(games), [games]);
   useEffect(() => savePlayers(players), [players]);
@@ -212,7 +217,33 @@ function App() {
                 className="w-full sm:max-w-md bg-gray-200/70 rounded-full pl-11 pr-5 py-2.5 sm:py-3 text-sm text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-orange-300 focus:outline-none transition-all"
               />
             </div>
-            <div className="flex items-center gap-1.5">
+
+            {/* Mobile: filter toggle + hamburger + add */}
+            <div className="flex items-center gap-1.5 sm:hidden">
+              <button
+                onClick={() => { setShowMobileFilters((v) => !v); setShowMobileMenu(false); }}
+                className={`p-2 rounded-xl transition-colors cursor-pointer relative ${showMobileFilters ? "text-orange-500 bg-orange-50" : "text-gray-500 hover:bg-gray-100"}`}
+                title="Filtros"
+              >
+                <SlidersHorizontal size={18} />
+                {hasActiveFilters && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" />
+                )}
+              </button>
+              <button
+                onClick={() => { setShowMobileMenu((v) => !v); setShowMobileFilters(false); }}
+                className={`p-2 rounded-xl transition-colors cursor-pointer ${showMobileMenu ? "text-orange-500 bg-orange-50" : "text-gray-500 hover:bg-gray-100"}`}
+                title="Menú"
+              >
+                <Menu size={18} />
+              </button>
+              <button onClick={() => setShowAddForm(true)} className="p-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white transition-colors cursor-pointer">
+                <Plus size={16} />
+              </button>
+            </div>
+
+            {/* Desktop: all action buttons */}
+            <div className="hidden sm:flex items-center gap-1.5">
               <button onClick={() => setShowOwners(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Owners">
                 <UsersIcon size={18} />
               </button>
@@ -230,13 +261,131 @@ function App() {
               </button>
               <button onClick={() => setShowAddForm(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium transition-colors cursor-pointer">
                 <Plus size={16} />
-                <span className="hidden sm:inline">Agregar</span>
+                <span>Agregar</span>
               </button>
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-x-3 sm:gap-x-5 mt-3 pt-3 border-t border-gray-100 overflow-x-auto scrollbar-hide pb-1 -mb-1">
+          {/* Mobile hamburger menu dropdown */}
+          {showMobileMenu && (
+            <div className="sm:hidden mt-2 bg-white rounded-xl border border-gray-100 shadow-lg overflow-hidden">
+              {[
+                { label: "Owners", icon: UsersIcon, action: () => { setShowOwners(true); setShowMobileMenu(false); } },
+                { label: "Quick Game", icon: Zap, action: () => { setShowQuickPicker(true); setShowMobileMenu(false); } },
+                { label: "Maratón", icon: Route, action: () => { setShowMarathon(true); setShowMobileMenu(false); } },
+                { label: "Dados", icon: Dices, action: () => { setShowDice(true); setShowMobileMenu(false); } },
+                { label: "Leaderboard", icon: Trophy, action: () => { setShowLeaderboard(true); setShowMobileMenu(false); } },
+              ].map((item, i) => (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  className={`flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer ${i > 0 ? "border-t border-gray-50" : ""}`}
+                >
+                  <item.icon size={16} className="text-gray-400" />
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Mobile compact filters panel */}
+          {showMobileFilters && (
+            <div className="sm:hidden mt-2 space-y-3 pb-1">
+              {/* Owner avatars */}
+              <div className="flex items-center gap-2">
+                <UserCircle size={14} className="text-gray-400 shrink-0" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {ownersData.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setFilterOwner(filterOwner === o.nombre ? "all" : o.nombre)}
+                      className={`w-7 h-7 rounded-full overflow-hidden border-2 transition-all cursor-pointer ${
+                        filterOwner === o.nombre
+                          ? "border-orange-500 scale-110 shadow-md"
+                          : filterOwner === "all"
+                          ? "border-gray-200"
+                          : "border-gray-200 opacity-40"
+                      }`}
+                      title={o.nombre}
+                    >
+                      <img src={o.avatar} alt={o.nombre} className="w-full h-full object-cover" loading="eager" width={28} height={28} decoding="async" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Categories wrapping */}
+              <div className="flex items-start gap-2">
+                <Shapes size={14} className="text-gray-400 shrink-0 mt-1" />
+                <div className="flex flex-wrap gap-1.5">
+                  {allCategories.map((cat) => {
+                    const active = filterCategories.has(cat);
+                    const colors = categoryColors[cat];
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => toggleCategory(cat)}
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                          active
+                            ? `${colors.bg} text-white shadow-sm`
+                            : `${colors.inactive} opacity-60 hover:opacity-100`
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Players + Time in one row */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <UsersIcon size={14} className="text-gray-400 shrink-0" />
+                  {playerRanges.map((r) => (
+                    <button
+                      key={r.label}
+                      onClick={() => setFilterPlayerRange(filterPlayerRange === r.label ? "all" : r.label)}
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all cursor-pointer ${
+                        filterPlayerRange === r.label
+                          ? "bg-orange-500 text-white shadow-sm"
+                          : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="w-px h-4 bg-gray-200" />
+                <div className="flex items-center gap-1.5">
+                  <Clock size={14} className="text-gray-400 shrink-0" />
+                  {[15, 30, 60, 180].map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setFilterTime(filterTime === t ? 0 : t)}
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all cursor-pointer ${
+                        filterTime === t
+                          ? "bg-orange-500 text-white shadow-sm"
+                          : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      {t === 180 ? "180+" : t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Clear button */}
+              {hasActiveFilters && (
+                <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-orange-500 hover:text-orange-600 cursor-pointer">
+                  <X size={12} /> Limpiar filtros
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Desktop filters - single line */}
+          <div className="hidden sm:flex items-center gap-x-5 mt-3 pt-3 border-t border-gray-100">
             {/* Owner avatars */}
             <div className="flex items-center gap-2 shrink-0">
               <UserCircle size={15} className="text-gray-400 shrink-0" />
