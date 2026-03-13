@@ -170,20 +170,44 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
 
   const isScoreBased = victoryType === "score_descending" || victoryType === "score_ascending";
 
-  // Team validation for presets with requireAllTeams (e.g. Samurai Sword)
+  // Team validation for presets
   const teamValidation = useMemo(() => {
     const teams = activeTeams;
     const presetConfig = preset;
-    if (!teams || !presetConfig?.requireAllTeams) return { valid: true, errors: [] };
+    if (!teams) return { valid: true, errors: [] };
 
     const validParticipants = participants.filter((p) => p.playerName.trim());
+    const playerCount = validParticipants.length;
     const errors = [];
 
-    // Check all teams are represented
+    // Check distribution constraints if available
+    const dist = presetConfig?.distribution?.[playerCount];
+    if (dist) {
+      teams.forEach((t, ti) => {
+        const expected = dist[ti];
+        const actual = validParticipants.filter((p) => p.team === t.name).length;
+        if (expected > 0 && actual !== expected) {
+          errors.push(`${t.name}: debe haber ${expected}, hay ${actual}`);
+        }
+        if (expected === 0 && actual > 0) {
+          errors.push(`${t.name}: no aplica con ${playerCount} jugadores`);
+        }
+      });
+    } else if (presetConfig?.requireAllTeams) {
+      // Fallback: all teams must be represented
+      teams.forEach((t) => {
+        const count = validParticipants.filter((p) => p.team === t.name).length;
+        if (count === 0) errors.push(`Falta asignar: ${t.name}`);
+        if (t.max && count > t.max) errors.push(`${t.name}: máximo ${t.max}`);
+      });
+    }
+
+    // Always check max constraints
     teams.forEach((t) => {
-      const count = validParticipants.filter((p) => p.team === t.name).length;
-      if (count === 0) errors.push(`Falta asignar: ${t.name}`);
-      if (t.max && count > t.max) errors.push(`${t.name}: máximo ${t.max}`);
+      if (t.max) {
+        const count = validParticipants.filter((p) => p.team === t.name).length;
+        if (count > t.max) errors.push(`${t.name}: máximo ${t.max}`);
+      }
     });
 
     // Check no unassigned players
