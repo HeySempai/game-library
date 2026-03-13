@@ -164,8 +164,11 @@ function App() {
     });
   };
 
-  const handleAddVictory = (victory) => {
-    setVictories((prev) => [...prev, victory]);
+  const handleAddVictory = async (victory) => {
+    const saved = await addVictory(victory);
+    if (saved) {
+      setVictories((prev) => [saved, ...prev]);
+    }
   };
 
   const allOwners = useMemo(() => {
