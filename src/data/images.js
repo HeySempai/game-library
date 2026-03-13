@@ -56,7 +56,7 @@ export const imageMap = {
   "h2s-sleigh": `${S}/here-to-sleigh.jpg`,
   "h2s-warriors-druids": `${S}/warriors-and-druids.webp`,
   "king-tokyo-pu": `${S}/king-of-tokyo-power-up.jpg`,
-  "exploding-kittens-party": `${S}/exploding-kittens.webp`,
+  "exploding-kittens-party": `${S}/exploding-kittens-party-pack.webp`,
   "dune-imperium": `${S}/dune.webp`,
   "root": `${S}/root.webp`,
   "salem-1692": `${S}/salem.webp`,
