@@ -259,9 +259,6 @@ export default function RandomPicker({ games, onClose }) {
               {/* Marathon route */}
               <div className="space-y-3">
                 {marathon.route.map((entry, idx) => {
-                  const runningTotal = marathon.route
-                    .slice(0, idx + 1)
-                    .reduce((sum, e) => sum + e.duration, 0);
                   const category = categoryMap[entry.game.id];
                   return (
                     <div
@@ -282,7 +279,7 @@ export default function RandomPicker({ games, onClose }) {
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock size={12} />
-                              {entry.game.duracion}
+                              ~{entry.duration} min
                             </span>
                           </div>
                           {category && (
@@ -295,16 +292,13 @@ export default function RandomPicker({ games, onClose }) {
                             </span>
                           )}
                         </div>
-                        <span className="text-xs text-gray-400 shrink-0 text-right">
-                          {runningTotal} min
-                        </span>
                       </div>
 
-                      {/* Expansions row */}
+                      {/* Selected expansions/ampliaciones */}
                       {entry.expansions.length > 0 && (
                         <div className="mt-2 ml-9 flex items-center gap-2">
-                          <span className="text-[10px] text-gray-400 uppercase tracking-wide shrink-0">
-                            Expansiones:
+                          <span className="text-[10px] text-gray-400 uppercase tracking-wide shrink-0 flex items-center gap-1">
+                            <Package size={10} /> Incluye:
                           </span>
                           <div className="flex gap-1.5 overflow-x-auto">
                             {entry.expansions.map((exp) => (
