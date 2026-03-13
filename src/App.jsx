@@ -233,7 +233,7 @@ function App() {
           {/* Filters */}
           <div className="flex flex-nowrap items-center gap-x-6 gap-y-3 mt-3 pt-3 border-t border-gray-100 overflow-x-auto">
             {/* Owner avatars */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 shrink-0">
               <UserCircle size={15} className="text-gray-400 shrink-0" />
               <div className="flex items-center gap-2">
                 {ownersData.map((o) => (
