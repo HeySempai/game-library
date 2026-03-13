@@ -27,10 +27,10 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
   const parent = game.parentId ? allGames.find((g) => g.id === game.parentId) : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/30 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {/* Cover */}
-        <div className="relative bg-gray-50 p-8 flex justify-center rounded-t-2xl">
+        <div className="relative bg-gray-50 p-5 sm:p-8 flex justify-center rounded-t-2xl">
           <button onClick={onClose} className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white text-gray-500 transition-colors cursor-pointer z-10 shadow-sm">
             <X size={18} />
           </button>
