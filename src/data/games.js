@@ -225,7 +225,7 @@ const _games = [
     id: "mario",
     tipo: "Juego Base",
     nombre: "Mario Bros Power Up Card Game",
-    duracion: "10-30 mins",
+    duracion: "60 mins",
     minJugadores: 3,
     maxJugadores: 8,
     jugadoresDisplay: "3-8",
