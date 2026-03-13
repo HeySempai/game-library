@@ -199,7 +199,7 @@ function App() {
     }
   };
 
-
+  const handleAddVictory = async (victory) => {
     const saved = await addVictory(victory);
     if (saved) {
       setVictories((prev) => [saved, ...prev]);
