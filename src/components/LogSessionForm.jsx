@@ -295,7 +295,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
       const newIdx = participants.length;
       setParticipants([...participants, {
         playerName, score: "", isWinner: false,
-        team: activeTeams ? assignTeam(newIdx, activeTeams) : "",
+        team: "",
       }]);
     }
   };
