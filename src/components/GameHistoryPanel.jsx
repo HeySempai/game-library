@@ -150,6 +150,7 @@ export default function GameHistoryPanel({ games, players, gameConfigs, onClose,
           victoryType={gameConfigs[logGame.id]?.victoryType || "absolute_winner"}
           teamMode={gameConfigs[logGame.id]?.teamMode || null}
           players={players}
+          allGames={games}
           onSave={async ({ session, participants }) => {
             const { createGameSession } = await import("../utils/storage");
             await createGameSession(session, participants);

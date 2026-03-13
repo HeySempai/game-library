@@ -219,6 +219,7 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
           victoryType={victoryType}
           teamMode={gameConfig?.teamMode || null}
           players={players || []}
+          allGames={allGames}
           onSave={handleSessionSaved}
           onClose={() => setShowLogForm(false)}
         />
