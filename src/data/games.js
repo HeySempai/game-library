@@ -661,7 +661,7 @@ const _games = [
     id: "llamageddon",
     tipo: "Juego Base",
     nombre: "Llamageddon",
-    duracion: "10-15 mins",
+    duracion: "15 mins",
     minJugadores: 2,
     maxJugadores: 5,
     jugadoresDisplay: "2-5",
