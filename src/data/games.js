@@ -334,7 +334,7 @@ const _games = [
     id: "azul",
     tipo: "Juego Base",
     nombre: "Azul",
-    duracion: "30-45 mins",
+    duracion: "60 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
