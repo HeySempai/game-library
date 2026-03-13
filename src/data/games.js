@@ -261,7 +261,7 @@ const _games = [
     id: "wingspan-base",
     tipo: "Juego Base",
     nombre: "Wingspan",
-    duracion: "40-70 mins",
+    duracion: "90 mins",
     minJugadores: 1,
     maxJugadores: 5,
     jugadoresDisplay: "1-5",
