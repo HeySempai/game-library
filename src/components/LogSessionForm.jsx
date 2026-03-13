@@ -462,16 +462,22 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                               const countInTeam = participants.filter((pp) => pp.playerName && pp.team === t.name).length;
                               const isCurrentTeam = p.team === t.name;
                               const atMax = t.max && countInTeam >= t.max && !isCurrentTeam;
+                              const IconComp = t.icon ? { Swords, Crown, Shield, EyeOff }[t.icon] : null;
                               return (
                                 <button key={t.name} type="button"
                                   onClick={() => !atMax && updateParticipant(i, "team", t.name)}
                                   disabled={atMax}
-                                  className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                                  title={`${t.name}${t.max ? ` (${countInTeam}/${t.max})` : ""}`}
+                                  className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 ${
                                     atMax ? "bg-gray-100 text-gray-300 cursor-not-allowed" :
                                     isCurrentTeam ? `${t.color} ${t.textColor} shadow-sm cursor-pointer` : "bg-gray-200 text-gray-400 cursor-pointer"
                                   }`}>
-                                  {t.name.length > 10 ? t.name.split(" ")[0] : t.name}
-                                  {t.max ? ` (${countInTeam}/${t.max})` : ""}
+                                  {IconComp ? <IconComp size={12} /> : null}
+                                  {!IconComp && (t.name.length > 10 ? t.name.split(" ")[0] : t.name)}
+                                  {t.max ? ` ${countInTeam}/${t.max}` : ""}
+                                </button>
+                              );
+                            })}
                                 </button>
                               );
                             })}
