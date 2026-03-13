@@ -394,7 +394,7 @@ const _games = [
     id: "casting-shadows-ice",
     tipo: "Ampliacion",
     nombre: "Casting Shadows: Ice Storm",
-    duracion: "30-60 mins",
+    duracion: "60 mins",
     minJugadores: 3,
     maxJugadores: 6,
     jugadoresDisplay: "→ 3-6",
