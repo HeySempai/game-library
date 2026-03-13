@@ -62,8 +62,12 @@ function App() {
   const [filterTime, setFilterTime] = useState(0);
 
   useEffect(() => saveGames(games), [games]);
-  useEffect(() => saveVictories(victories), [victories]);
   useEffect(() => savePlayers(players), [players]);
+
+  // Load victories from DB on mount
+  useEffect(() => {
+    loadVictories().then((v) => setVictories(v));
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
