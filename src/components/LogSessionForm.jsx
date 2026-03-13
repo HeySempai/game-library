@@ -96,9 +96,36 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const effectiveMaxPlayers = activeFormat?.maxPlayers || maxPlayers;
 
   // Helper: assign team based on index and active teams
-  const assignTeam = (index, teams) => {
+  const assignTeam = (index, teams, totalPlayers) => {
     if (!teams || teams.length === 0) return "";
-    const perTeam = Math.ceil(effectiveMaxPlayers / teams.length);
+
+    // Smart assignment for presets with max constraints (e.g. Samurai Sword)
+    const hasMaxConstraints = teams.some((t) => t.max);
+    if (hasMaxConstraints) {
+      // Build assignment list: first place max-constrained roles, then distribute rest
+      const assignments = [];
+      const constrained = teams.filter((t) => t.max);
+      const unconstrained = teams.filter((t) => !t.max);
+
+      // Assign constrained roles first (1 each)
+      constrained.forEach((t) => {
+        for (let c = 0; c < (t.max || 1); c++) assignments.push(t.name);
+      });
+
+      // Distribute remaining players across unconstrained teams evenly
+      const remaining = (totalPlayers || effectiveMaxPlayers) - assignments.length;
+      if (unconstrained.length > 0) {
+        for (let r = 0; r < remaining; r++) {
+          assignments.push(unconstrained[r % unconstrained.length].name);
+        }
+      }
+
+      return assignments[index] || unconstrained[0]?.name || teams[0].name;
+    }
+
+    // Default: distribute evenly
+    const total = totalPlayers || effectiveMaxPlayers;
+    const perTeam = Math.ceil(total / teams.length);
     const teamIdx = Math.min(Math.floor(index / perTeam), teams.length - 1);
     return teams[teamIdx].name;
   };
@@ -111,7 +138,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     const count = Math.min(players.length, max);
     return players.slice(0, count).map((p, idx) => ({
       playerName: p, score: "", isWinner: false,
-      team: teams ? teams[Math.min(Math.floor(idx / Math.ceil(max / teams.length)), teams.length - 1)]?.name || "" : "",
+      team: teams ? assignTeam(idx, teams, count) : "",
     }));
   }, []);
   const [participants, setParticipants] = useState(initialPlayers);
@@ -125,7 +152,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     const count = Math.min(players.length, newMax);
     setParticipants(players.slice(0, count).map((p, idx) => ({
       playerName: p, score: "", isWinner: false,
-      team: newTeams ? newTeams[Math.min(Math.floor(idx / Math.ceil(newMax / newTeams.length)), newTeams.length - 1)]?.name || "" : "",
+      team: newTeams ? assignTeam(idx, newTeams, count) : "",
     })));
   };
 
