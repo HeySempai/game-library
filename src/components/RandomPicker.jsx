@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
-import { X, Dices, Users, Clock, RotateCcw, Route } from "lucide-react";
+import { X, Dices, Users, Clock, RotateCcw, Route, Package } from "lucide-react";
 import { parseDuration } from "../utils/storage";
 import { categoryMap, allCategories } from "../data/categories";
+import { loadRngDisabled } from "./SettingsPanel";
 
 const categoryColors = {
   "Party Game": { active: "bg-pink-500 text-white", inactive: "bg-pink-100 text-pink-600" },
@@ -32,9 +33,10 @@ function getEffectiveMax(game, allGames) {
   return max;
 }
 
-function filterEligible(games, playerRange, activeCategories) {
+function filterEligible(games, playerRange, activeCategories, rngDisabled) {
   const baseGames = games.filter((g) => g.tipo === "Juego Base");
   return baseGames.filter((game) => {
+    if (rngDisabled.has(game.id)) return false;
     if (playerRange) {
       const effectiveMax = getEffectiveMax(game, games);
       const fitsRange = game.minJugadores <= playerRange.max && effectiveMax >= playerRange.min;
@@ -64,10 +66,11 @@ export default function RandomPicker({ games, onClose }) {
   const [playerRange, setPlayerRange] = useState(null);
   const [activeCategories, setActiveCategories] = useState(new Set());
   const [marathon, setMarathon] = useState(null);
+  const rngDisabled = useMemo(() => loadRngDisabled(), []);
 
   const eligible = useMemo(
-    () => filterEligible(games, playerRange, activeCategories),
-    [games, playerRange, activeCategories]
+    () => filterEligible(games, playerRange, activeCategories, rngDisabled),
+    [games, playerRange, activeCategories, rngDisabled]
   );
 
   const toggleCategory = (cat) => {
@@ -91,30 +94,75 @@ export default function RandomPicker({ games, onClose }) {
     let totalTime = 0;
     const pool = [...eligible];
 
+    // Shuffle pool
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
+
+    const playerMax = playerRange?.max || 99;
+    const playerMin = playerRange?.min || 1;
 
     for (const game of pool) {
       if (totalTime >= TARGET_MAX) break;
       const dur = parseDuration(game.duracion);
       const gameDur = dur.max || dur.min || 30;
       if (totalTime + gameDur > TARGET_MAX + 60) continue;
-      const expansions = getAllExpansions(game, games);
-      route.push({ game, expansions, duration: gameDur });
+
+      // Get all expansions for this game
+      const allExpansions = getAllExpansions(game, games);
+      const ampliaciones = allExpansions.filter((e) => e.tipo === "Ampliacion");
+      const expansiones = allExpansions.filter((e) => e.tipo === "Expansion");
+
+      // Check if ampliaciones are required for player count
+      const needsAmpliacion = game.maxJugadores < playerMin;
+      const requiredAmps = needsAmpliacion
+        ? ampliaciones.filter((a) => a.maxJugadores && a.maxJugadores >= playerMin)
+        : [];
+
+      // If we need an ampliacion but none fits, skip this game
+      if (needsAmpliacion && requiredAmps.length === 0) continue;
+
+      // Pick required ampliacion (random from qualifying ones)
+      const selectedAmps = needsAmpliacion
+        ? [requiredAmps[Math.floor(Math.random() * requiredAmps.length)]]
+        : ampliaciones.length > 0 && Math.random() > 0.6
+          ? [ampliaciones[Math.floor(Math.random() * ampliaciones.length)]]
+          : [];
+
+      // Randomly include some expansions (50% chance each)
+      const selectedExps = expansiones.filter(() => Math.random() > 0.5);
+
+      const selectedAddons = [...selectedAmps, ...selectedExps];
+
+      route.push({ game, expansions: selectedAddons, duration: gameDur });
       totalTime += gameDur;
       if (totalTime >= TARGET_MIN) break;
     }
 
-    if (totalTime < TARGET_MIN && pool.length > 0) {
+    // If still short, add more from remaining pool
+    if (totalTime < TARGET_MIN) {
       for (const game of pool) {
         if (totalTime >= TARGET_MIN) break;
         if (route.some((r) => r.game.id === game.id)) continue;
         const dur = parseDuration(game.duracion);
         const gameDur = dur.max || dur.min || 30;
-        const expansions = getAllExpansions(game, games);
-        route.push({ game, expansions, duration: gameDur });
+
+        const allExpansions = getAllExpansions(game, games);
+        const ampliaciones = allExpansions.filter((e) => e.tipo === "Ampliacion");
+        const expansiones = allExpansions.filter((e) => e.tipo === "Expansion");
+        const needsAmpliacion = game.maxJugadores < playerMin;
+        const requiredAmps = needsAmpliacion
+          ? ampliaciones.filter((a) => a.maxJugadores && a.maxJugadores >= playerMin)
+          : [];
+        if (needsAmpliacion && requiredAmps.length === 0) continue;
+
+        const selectedAmps = needsAmpliacion
+          ? [requiredAmps[Math.floor(Math.random() * requiredAmps.length)]]
+          : [];
+        const selectedExps = expansiones.filter(() => Math.random() > 0.5);
+
+        route.push({ game, expansions: [...selectedAmps, ...selectedExps], duration: gameDur });
         totalTime += gameDur;
       }
     }
@@ -211,9 +259,6 @@ export default function RandomPicker({ games, onClose }) {
               {/* Marathon route */}
               <div className="space-y-3">
                 {marathon.route.map((entry, idx) => {
-                  const runningTotal = marathon.route
-                    .slice(0, idx + 1)
-                    .reduce((sum, e) => sum + e.duration, 0);
                   const category = categoryMap[entry.game.id];
                   return (
                     <div
@@ -234,7 +279,7 @@ export default function RandomPicker({ games, onClose }) {
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock size={12} />
-                              {entry.game.duracion}
+                              ~{entry.duration} min
                             </span>
                           </div>
                           {category && (
@@ -247,16 +292,13 @@ export default function RandomPicker({ games, onClose }) {
                             </span>
                           )}
                         </div>
-                        <span className="text-xs text-gray-400 shrink-0 text-right">
-                          {runningTotal} min
-                        </span>
                       </div>
 
-                      {/* Expansions row */}
+                      {/* Selected expansions/ampliaciones */}
                       {entry.expansions.length > 0 && (
                         <div className="mt-2 ml-9 flex items-center gap-2">
-                          <span className="text-[10px] text-gray-400 uppercase tracking-wide shrink-0">
-                            Expansiones:
+                          <span className="text-[10px] text-gray-400 uppercase tracking-wide shrink-0 flex items-center gap-1">
+                            <Package size={10} /> Incluye:
                           </span>
                           <div className="flex gap-1.5 overflow-x-auto">
                             {entry.expansions.map((exp) => (
