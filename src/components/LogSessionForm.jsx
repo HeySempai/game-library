@@ -150,7 +150,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     const count = Math.min(players.length, max);
     return players.slice(0, count).map((p, idx) => ({
       playerName: p, score: "", isWinner: false,
-      team: teams ? assignTeam(idx, teams, count, preset) : "",
+      team: "",
     }));
   }, []);
   const [participants, setParticipants] = useState(initialPlayers);
