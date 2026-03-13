@@ -94,7 +94,7 @@ export default function GameCard({ game, allGames, expansions, category, onClick
               <img
                 src={game.imageUrl}
                 alt={game.nombre}
-                className="max-w-full max-h-full object-contain transition-[filter] duration-200 group-hover:[filter:drop-shadow(6px_10px_10px_rgba(0,0,0,0.35))_drop-shadow(2px_4px_5px_rgba(0,0,0,0.2))]"
+                className="max-w-full max-h-full object-contain transition-[filter] duration-300 group-hover:[filter:drop-shadow(8px_14px_14px_rgba(0,0,0,0.45))_drop-shadow(3px_6px_8px_rgba(0,0,0,0.3))]"
                 style={{
                   filter: "drop-shadow(4px 6px 6px rgba(0,0,0,0.25)) drop-shadow(1px 2px 3px rgba(0,0,0,0.15))",
                 }}
