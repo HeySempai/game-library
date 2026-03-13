@@ -27,9 +27,10 @@ function getEffectiveMax(game, allGames) {
   return max;
 }
 
-function filterEligible(games, playerCount, activeCategories) {
+function filterEligible(games, playerCount, activeCategories, rngDisabled) {
   const baseGames = games.filter((g) => g.tipo === "Juego Base");
   return baseGames.filter((game) => {
+    if (rngDisabled.has(game.id)) return false;
     // Player count filter
     const effectiveMax = getEffectiveMax(game, games);
     if (playerCount >= 7) {
