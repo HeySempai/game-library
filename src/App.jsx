@@ -50,6 +50,7 @@ function App() {
     if (!stored) return initialGames;
 
     const storedById = new Map(stored.map((g) => [g.id, g]));
+    const canonicalIds = new Set(initialGames.map((g) => g.id));
 
     // Keep canonical catalog data (players, duration, ids, etc.)
     // and only preserve user-editable fields from local storage.
@@ -64,7 +65,7 @@ function App() {
 
     // Preserve custom user-created games that don't exist in the canonical catalog.
     const customGames = stored
-      .filter((g) => !storedById.has(g.id) ? false : !initialGames.some((ig) => ig.id === g.id))
+      .filter((g) => !canonicalIds.has(g.id))
       .map((g) => ({ ...g, imageUrl: g.imageUrl || "" }));
 
     return [...mergedCatalog, ...customGames];
