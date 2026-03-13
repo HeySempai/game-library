@@ -285,7 +285,7 @@ const _games = [
     id: "flip7",
     tipo: "Juego Base",
     nombre: "Flip 7",
-    duracion: "20 mins",
+    duracion: "15 mins",
     minJugadores: 3,
     maxJugadores: 12,
     jugadoresDisplay: "3-12",
