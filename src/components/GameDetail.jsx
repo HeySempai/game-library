@@ -38,7 +38,7 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
             <img
               src={game.imageUrl}
               alt={game.nombre}
-              className="max-h-72 w-auto rounded-lg block"
+              className="max-h-48 sm:max-h-72 w-auto rounded-lg block"
               style={{ boxShadow: "4px 6px 20px rgba(0,0,0,0.15), 2px 3px 8px rgba(0,0,0,0.08)" }}
             />
           ) : (
