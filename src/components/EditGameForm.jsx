@@ -3,13 +3,14 @@ import { X, Plus, Trash2 } from "lucide-react";
 import { categoryMap, allCategories } from "../data/categories";
 
 export default function EditGameForm({ game, players, onSave, onClose }) {
+  const [nombre, setNombre] = useState(game.nombre);
   const [owners, setOwners] = useState([...game.owners]);
   const [category, setCategory] = useState(categoryMap[game.id] || "");
   const [newOwner, setNewOwner] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ owners, category });
+    onSave({ nombre: nombre.trim() || game.nombre, owners, category });
     onClose();
   };
 
