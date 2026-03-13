@@ -11,6 +11,9 @@ import {
   Zap,
   Route,
   Dices,
+  Menu,
+  SlidersHorizontal,
+  ChevronDown,
 } from "lucide-react";
 import { initialGames } from "./data/games";
 import { imageMap } from "./data/images";
