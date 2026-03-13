@@ -443,7 +443,7 @@ const _games = [
     id: "wavelength",
     tipo: "Juego Base",
     nombre: "Wavelength",
-    duracion: "30-45 mins",
+    duracion: "60 mins",
     minJugadores: 2,
     maxJugadores: 12,
     jugadoresDisplay: "2-12",
