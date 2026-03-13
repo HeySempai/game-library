@@ -92,15 +92,39 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const activeTeams = activeFormat?.teams || preset?.teams || null;
   const effectiveMaxPlayers = activeFormat?.maxPlayers || maxPlayers;
 
+  // Helper: assign team based on index and active teams
+  const assignTeam = (index, teams) => {
+    if (!teams || teams.length === 0) return "";
+    const perTeam = Math.ceil(effectiveMaxPlayers / teams.length);
+    const teamIdx = Math.min(Math.floor(index / perTeam), teams.length - 1);
+    return teams[teamIdx].name;
+  };
+
   // Participants — preload all 6 players (up to max)
   const initialPlayers = useMemo(() => {
-    const count = Math.min(players.length, effectiveMaxPlayers);
-    return players.slice(0, count).map((p) => ({
+    const fmt = preset?.formats?.[0];
+    const teams = fmt?.teams || preset?.teams || null;
+    const max = fmt?.maxPlayers || maxPlayers;
+    const count = Math.min(players.length, max);
+    return players.slice(0, count).map((p, idx) => ({
       playerName: p, score: "", isWinner: false,
-      team: activeTeams ? activeTeams[0]?.name || "" : "",
+      team: teams ? teams[Math.min(Math.floor(idx / Math.ceil(max / teams.length)), teams.length - 1)]?.name || "" : "",
     }));
   }, []);
   const [participants, setParticipants] = useState(initialPlayers);
+
+  // When format changes, reset participants to fit new max and teams
+  const handleFormatChange = (formatId) => {
+    setSelectedFormat(formatId);
+    const fmt = preset?.formats?.find((f) => f.id === formatId);
+    const newMax = fmt?.maxPlayers || maxPlayers;
+    const newTeams = fmt?.teams || null;
+    const count = Math.min(players.length, newMax);
+    setParticipants(players.slice(0, count).map((p, idx) => ({
+      playerName: p, score: "", isWinner: false,
+      team: newTeams ? newTeams[Math.min(Math.floor(idx / Math.ceil(newMax / newTeams.length)), newTeams.length - 1)]?.name || "" : "",
+    })));
+  };
 
   const isScoreBased = victoryType === "score_descending" || victoryType === "score_ascending";
 
@@ -111,9 +135,10 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const addParticipant = () => {
     if (!canAddMore) return;
     const available = players.filter((p) => !usedNames.includes(p));
+    const newIdx = participants.length;
     setParticipants([...participants, {
       playerName: available[0] || "", score: "", isWinner: false,
-      team: activeTeams ? activeTeams[0]?.name || "" : "",
+      team: activeTeams ? assignTeam(newIdx, activeTeams) : "",
     }]);
   };
 
@@ -127,19 +152,26 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
 
   const togglePlayer = (playerName) => {
     if (usedNames.includes(playerName)) {
-      // Remove
       setParticipants(participants.filter((p) => p.playerName !== playerName));
     } else if (canAddMore) {
-      // Add
+      const newIdx = participants.length;
       setParticipants([...participants, {
         playerName, score: "", isWinner: false,
-        team: activeTeams ? activeTeams[0]?.name || "" : "",
+        team: activeTeams ? assignTeam(newIdx, activeTeams) : "",
       }]);
     }
   };
 
   const selectWinner = (i) => {
-    if (victoryType === "team_winner") {
+    if (victoryType === "team_winner" && activeTeams) {
+      // Toggle winner for entire team
+      const clickedTeam = participants[i].team;
+      const newWinState = !participants[i].isWinner;
+      setParticipants(participants.map((p) => ({
+        ...p,
+        isWinner: p.team === clickedTeam ? newWinState : false,
+      })));
+    } else if (victoryType === "team_winner") {
       updateParticipant(i, "isWinner", !participants[i].isWinner);
     } else {
       setParticipants(participants.map((p, idx) => ({ ...p, isWinner: idx === i })));
