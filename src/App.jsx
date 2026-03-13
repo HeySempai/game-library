@@ -186,7 +186,11 @@ function App() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [selectedGame, editingGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, showSettings, navigateGame]);
+  }, [selectedGame, editingGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, showSettings, showHistory, navigateGame]);
+
+  const handleConfigChange = (gameId, config) => {
+    setGameConfigs((prev) => ({ ...prev, [gameId]: config }));
+  };
 
   const handleAddGame = (newGame) => {
     setGames((prev) => [...prev, newGame]);
