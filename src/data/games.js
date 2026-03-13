@@ -709,7 +709,7 @@ const _games = [
     id: "the-mind",
     tipo: "Juego Base",
     nombre: "The Mind",
-    duracion: "15-20 mins",
+    duracion: "15 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
