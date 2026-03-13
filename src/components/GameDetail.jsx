@@ -21,7 +21,7 @@ const categoryColors = {
   "Card Game": "bg-indigo-500",
 };
 
-export default function GameDetail({ game, expansions, allGames, category, onClose }) {
+export default function GameDetail({ game, expansions, allGames, category, onClose, onEdit }) {
   if (!game) return null;
 
   const parent = game.parentId ? allGames.find((g) => g.id === game.parentId) : null;
