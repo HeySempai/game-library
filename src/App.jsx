@@ -81,13 +81,15 @@ function App() {
   const [filterTime, setFilterTime] = useState(0);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => saveGames(games), [games]);
   useEffect(() => savePlayers(players), [players]);
 
-  // Load victories from DB on mount
+  // Load victories and game configs from DB on mount
   useEffect(() => {
     loadVictories().then((v) => setVictories(v));
+    loadGameConfigs().then((c) => setGameConfigs(c));
   }, []);
 
   useEffect(() => {
