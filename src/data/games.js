@@ -673,7 +673,7 @@ const _games = [
     id: "happy-dinos",
     tipo: "Juego Base",
     nombre: "Happy Little Dinosaurs",
-    duracion: "30-60 mins",
+    duracion: "30 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
