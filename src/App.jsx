@@ -32,7 +32,7 @@ import QuickPicker from "./components/QuickPicker";
 import RandomPicker from "./components/RandomPicker";
 import Leaderboard from "./components/Leaderboard";
 import OwnersPanel from "./components/OwnersPanel";
-
+import DiceRoller from "./components/DiceRoller";
 
 function App() {
   const [games, setGames] = useState(() => {
