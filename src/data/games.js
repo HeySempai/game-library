@@ -273,7 +273,7 @@ const _games = [
     id: "wingspan-asia",
     tipo: "Ampliacion",
     nombre: "Wingspan Asia",
-    duracion: "40-70 mins",
+    duracion: "90 mins",
     minJugadores: 1,
     maxJugadores: 7,
     jugadoresDisplay: "→ 1-7",
