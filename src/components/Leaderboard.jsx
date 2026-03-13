@@ -1,28 +1,68 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Trophy, Plus, Crown, Medal, Award } from "lucide-react";
+import { loadGameSessions, loadSessionParticipants } from "../utils/storage";
 
 export default function Leaderboard({ victories, games, players, onAddVictory, onClose }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedGame, setSelectedGame] = useState("");
   const [selectedWinner, setSelectedWinner] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [sessionStats, setSessionStats] = useState({ playerWins: {}, gameStats: {} });
 
   const baseGames = games.filter((g) => g.tipo === "Juego Base");
 
+  // Load session-based stats
+  useEffect(() => {
+    const load = async () => {
+      const sessions = await loadGameSessions();
+      if (sessions.length === 0) { setSessionStats({ playerWins: {}, gameStats: {} }); return; }
+      const pm = await loadSessionParticipants(sessions.map((s) => s.id));
+      const pw = {};
+      const gs = {};
+      Object.values(pm).flat().forEach((p) => {
+        if (p.is_winner) {
+          pw[p.player_name] = (pw[p.player_name] || 0) + 1;
+          // Find session to get game_id
+          const session = sessions.find((s) => s.id === p.session_id);
+          if (session) {
+            if (!gs[session.game_id]) gs[session.game_id] = {};
+            gs[session.game_id][p.player_name] = (gs[session.game_id][p.player_name] || 0) + 1;
+          }
+        }
+      });
+      setSessionStats({ playerWins: pw, gameStats: gs });
+    };
+    load();
+  }, []);
+
+  // Merge legacy victories + new session stats
   const playerWins = {};
   players.forEach((p) => (playerWins[p] = 0));
+  // Legacy victories
   victories.forEach((v) => {
     if (!playerWins[v.winner]) playerWins[v.winner] = 0;
     playerWins[v.winner]++;
   });
+  // Session-based wins
+  Object.entries(sessionStats.playerWins).forEach(([name, count]) => {
+    if (!playerWins[name]) playerWins[name] = 0;
+    playerWins[name] += count;
+  });
 
   const sorted = Object.entries(playerWins).sort((a, b) => b[1] - a[1]);
 
+  // Merge game stats
   const gameStats = {};
   victories.forEach((v) => {
     if (!gameStats[v.gameId]) gameStats[v.gameId] = {};
     if (!gameStats[v.gameId][v.winner]) gameStats[v.gameId][v.winner] = 0;
     gameStats[v.gameId][v.winner]++;
+  });
+  Object.entries(sessionStats.gameStats).forEach(([gameId, winners]) => {
+    if (!gameStats[gameId]) gameStats[gameId] = {};
+    Object.entries(winners).forEach(([name, count]) => {
+      gameStats[gameId][name] = (gameStats[gameId][name] || 0) + count;
+    });
   });
 
   const handleAddVictory = (e) => {
@@ -58,7 +98,7 @@ export default function Leaderboard({ victories, games, players, onAddVictory, o
         <div className="p-5 space-y-5">
           {showAddForm && (
             <form onSubmit={handleAddVictory} className="bg-gray-50 rounded-xl p-4 space-y-3">
-              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Registrar Victoria</h4>
+              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Registrar Victoria (Legacy)</h4>
               <select value={selectedGame} onChange={(e) => setSelectedGame(e.target.value)}
                 className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 text-sm focus:border-orange-400 focus:outline-none" required>
                 <option value="">Seleccionar juego...</option>
@@ -119,7 +159,7 @@ export default function Leaderboard({ victories, games, players, onAddVictory, o
             </div>
           )}
 
-          {victories.length === 0 && (
+          {victories.length === 0 && Object.keys(sessionStats.playerWins).length === 0 && (
             <p className="text-center text-gray-400 py-4">No hay victorias registradas aún.</p>
           )}
         </div>
