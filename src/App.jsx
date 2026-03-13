@@ -45,8 +45,12 @@ function App() {
   const [games, setGames] = useState(() => {
     const stored = loadGames();
     if (stored) {
+      // Build a map of canonical names from initialGames
+      const nameMap = {};
+      initialGames.forEach((g) => { nameMap[g.id] = g.nombre; });
       return stored.map((g) => ({
         ...g,
+        nombre: nameMap[g.id] || g.nombre,
         imageUrl: g.imageUrl || imageMap[g.id] || "",
       }));
     }
