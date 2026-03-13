@@ -19,7 +19,7 @@ import {
   loadGames,
   saveGames,
   loadVictories,
-  saveVictories,
+  addVictory,
   loadPlayers,
   savePlayers,
   parseDuration,
@@ -44,7 +44,7 @@ function App() {
     }
     return initialGames;
   });
-  const [victories, setVictories] = useState(() => loadVictories());
+  const [victories, setVictories] = useState([]);
   const [players, setPlayers] = useState(() => loadPlayers());
 
   const [selectedGame, setSelectedGame] = useState(null);
@@ -62,8 +62,12 @@ function App() {
   const [filterTime, setFilterTime] = useState(0);
 
   useEffect(() => saveGames(games), [games]);
-  useEffect(() => saveVictories(victories), [victories]);
   useEffect(() => savePlayers(players), [players]);
+
+  // Load victories from DB on mount
+  useEffect(() => {
+    loadVictories().then((v) => setVictories(v));
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -160,8 +164,11 @@ function App() {
     });
   };
 
-  const handleAddVictory = (victory) => {
-    setVictories((prev) => [...prev, victory]);
+  const handleAddVictory = async (victory) => {
+    const saved = await addVictory(victory);
+    if (saved) {
+      setVictories((prev) => [saved, ...prev]);
+    }
   };
 
   const allOwners = useMemo(() => {

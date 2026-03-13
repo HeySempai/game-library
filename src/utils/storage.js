@@ -1,5 +1,6 @@
+import { supabase } from "@/integrations/supabase/client";
+
 const GAMES_KEY = "boardgamehub_games";
-const VICTORIES_KEY = "boardgamehub_victories";
 const PLAYERS_KEY = "boardgamehub_players";
 
 export function loadGames() {
@@ -11,13 +12,39 @@ export function saveGames(games) {
   localStorage.setItem(GAMES_KEY, JSON.stringify(games));
 }
 
-export function loadVictories() {
-  const stored = localStorage.getItem(VICTORIES_KEY);
-  return stored ? JSON.parse(stored) : [];
+// Victories now use the database
+export async function loadVictories() {
+  const { data, error } = await supabase
+    .from("victories")
+    .select("*")
+    .order("date", { ascending: false });
+  if (error) {
+    console.error("Error loading victories:", error);
+    return [];
+  }
+  return data.map((v) => ({
+    id: v.id,
+    gameId: v.game_id,
+    winner: v.winner,
+    date: v.date,
+  }));
 }
 
-export function saveVictories(victories) {
-  localStorage.setItem(VICTORIES_KEY, JSON.stringify(victories));
+export async function addVictory(victory) {
+  const { data, error } = await supabase
+    .from("victories")
+    .insert({
+      game_id: victory.gameId,
+      winner: victory.winner,
+      date: victory.date,
+    })
+    .select()
+    .single();
+  if (error) {
+    console.error("Error adding victory:", error);
+    return null;
+  }
+  return { id: data.id, gameId: data.game_id, winner: data.winner, date: data.date };
 }
 
 export function loadPlayers() {
