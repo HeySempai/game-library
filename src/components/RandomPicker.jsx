@@ -94,30 +94,75 @@ export default function RandomPicker({ games, onClose }) {
     let totalTime = 0;
     const pool = [...eligible];
 
+    // Shuffle pool
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
+
+    const playerMax = playerRange?.max || 99;
+    const playerMin = playerRange?.min || 1;
 
     for (const game of pool) {
       if (totalTime >= TARGET_MAX) break;
       const dur = parseDuration(game.duracion);
       const gameDur = dur.max || dur.min || 30;
       if (totalTime + gameDur > TARGET_MAX + 60) continue;
-      const expansions = getAllExpansions(game, games);
-      route.push({ game, expansions, duration: gameDur });
+
+      // Get all expansions for this game
+      const allExpansions = getAllExpansions(game, games);
+      const ampliaciones = allExpansions.filter((e) => e.tipo === "Ampliacion");
+      const expansiones = allExpansions.filter((e) => e.tipo === "Expansion");
+
+      // Check if ampliaciones are required for player count
+      const needsAmpliacion = game.maxJugadores < playerMin;
+      const requiredAmps = needsAmpliacion
+        ? ampliaciones.filter((a) => a.maxJugadores && a.maxJugadores >= playerMin)
+        : [];
+
+      // If we need an ampliacion but none fits, skip this game
+      if (needsAmpliacion && requiredAmps.length === 0) continue;
+
+      // Pick required ampliacion (random from qualifying ones)
+      const selectedAmps = needsAmpliacion
+        ? [requiredAmps[Math.floor(Math.random() * requiredAmps.length)]]
+        : ampliaciones.length > 0 && Math.random() > 0.6
+          ? [ampliaciones[Math.floor(Math.random() * ampliaciones.length)]]
+          : [];
+
+      // Randomly include some expansions (50% chance each)
+      const selectedExps = expansiones.filter(() => Math.random() > 0.5);
+
+      const selectedAddons = [...selectedAmps, ...selectedExps];
+
+      route.push({ game, expansions: selectedAddons, duration: gameDur });
       totalTime += gameDur;
       if (totalTime >= TARGET_MIN) break;
     }
 
-    if (totalTime < TARGET_MIN && pool.length > 0) {
+    // If still short, add more from remaining pool
+    if (totalTime < TARGET_MIN) {
       for (const game of pool) {
         if (totalTime >= TARGET_MIN) break;
         if (route.some((r) => r.game.id === game.id)) continue;
         const dur = parseDuration(game.duracion);
         const gameDur = dur.max || dur.min || 30;
-        const expansions = getAllExpansions(game, games);
-        route.push({ game, expansions, duration: gameDur });
+
+        const allExpansions = getAllExpansions(game, games);
+        const ampliaciones = allExpansions.filter((e) => e.tipo === "Ampliacion");
+        const expansiones = allExpansions.filter((e) => e.tipo === "Expansion");
+        const needsAmpliacion = game.maxJugadores < playerMin;
+        const requiredAmps = needsAmpliacion
+          ? ampliaciones.filter((a) => a.maxJugadores && a.maxJugadores >= playerMin)
+          : [];
+        if (needsAmpliacion && requiredAmps.length === 0) continue;
+
+        const selectedAmps = needsAmpliacion
+          ? [requiredAmps[Math.floor(Math.random() * requiredAmps.length)]]
+          : [];
+        const selectedExps = expansiones.filter(() => Math.random() > 0.5);
+
+        route.push({ game, expansions: [...selectedAmps, ...selectedExps], duration: gameDur });
         totalTime += gameDur;
       }
     }
