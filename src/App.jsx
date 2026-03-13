@@ -253,7 +253,7 @@ function App() {
                   }`}
                   title={o.nombre}
                 >
-                  <img src={o.avatar} alt={o.nombre} className="w-full h-full object-cover" />
+                  <img src={o.avatar} alt={o.nombre} className="w-full h-full object-cover" loading="eager" width={32} height={32} decoding="async" />
                 </button>
               ))}
             </div>

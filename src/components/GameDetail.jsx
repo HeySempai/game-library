@@ -95,7 +95,7 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
                 <div key={i} className="group/owner relative flex flex-col items-center">
                   {avatarMap[owner] ? (
                     <img src={avatarMap[owner]} alt={owner}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-gray-100 hover:border-orange-300 transition-colors shadow-sm" />
+                      className="w-14 h-14 rounded-full object-cover border-2 border-gray-100 hover:border-orange-300 transition-colors shadow-sm" loading="eager" width={56} height={56} decoding="async" />
                   ) : (
                     <span className="w-14 h-14 rounded-full bg-gray-200 text-lg font-bold flex items-center justify-center text-gray-500">
                       {owner.charAt(0)}
