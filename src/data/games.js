@@ -189,7 +189,7 @@ const _games = [
     id: "con-base",
     tipo: "Juego Base",
     nombre: "Command of Nature",
-    duracion: "30-60 mins",
+    duracion: "60 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
