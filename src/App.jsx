@@ -233,7 +233,7 @@ function App() {
           {/* Filters */}
           <div className="flex flex-nowrap items-center gap-x-6 gap-y-3 mt-3 pt-3 border-t border-gray-100 overflow-x-auto">
             {/* Owner avatars */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 shrink-0">
               <UserCircle size={15} className="text-gray-400 shrink-0" />
               <div className="flex items-center gap-2">
                 {ownersData.map((o) => (
@@ -256,10 +256,10 @@ function App() {
             </div>
 
             {/* Separator */}
-            <div className="w-px h-6 bg-gray-200" />
+            <div className="w-px h-6 bg-gray-200 shrink-0" />
 
             {/* Category pills */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Shapes size={15} className="text-gray-400 shrink-0" />
               {allCategories.map((cat) => {
                 const active = filterCategories.has(cat);
@@ -268,7 +268,7 @@ function App() {
                   <button
                     key={cat}
                     onClick={() => toggleCategory(cat)}
-                    className={`text-[10px] font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                    className={`text-[10px] font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer whitespace-nowrap ${
                       active
                         ? `${colors.bg} text-white shadow-sm`
                         : `${colors.inactive} opacity-60 hover:opacity-100`
@@ -281,10 +281,10 @@ function App() {
             </div>
 
             {/* Separator */}
-            <div className="w-px h-6 bg-gray-200" />
+            <div className="w-px h-6 bg-gray-200 shrink-0" />
 
             {/* Player range pills */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <UsersIcon size={15} className="text-gray-400 shrink-0" />
               {playerRanges.map((r) => (
                 <button
@@ -304,10 +304,10 @@ function App() {
             </div>
 
             {/* Separator */}
-            <div className="w-px h-6 bg-gray-200" />
+            <div className="w-px h-6 bg-gray-200 shrink-0" />
 
             {/* Time pills */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Clock size={15} className="text-gray-400 shrink-0" />
               {[15, 30, 60, 180].map((t, i) => {
                 const label = t === 180 ? "180+" : `${t}`;
