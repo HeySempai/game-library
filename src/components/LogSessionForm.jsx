@@ -43,6 +43,7 @@ const TEAM_PRESETS = {
         { name: "Equipo 2", color: "bg-rose-500", textColor: "text-white" },
       ]},
     ],
+    requireAllTeams: true,
   },
   betrayal: {
     label: "Modo",
