@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      game_config: {
+        Row: {
+          created_at: string | null
+          game_id: string
+          team_mode: string | null
+          victory_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          game_id: string
+          team_mode?: string | null
+          victory_type?: string
+        }
+        Update: {
+          created_at?: string | null
+          game_id?: string
+          team_mode?: string | null
+          victory_type?: string
+        }
+        Relationships: []
+      }
+      game_sessions: {
+        Row: {
+          cooperative_win: boolean | null
+          created_at: string | null
+          date: string
+          duration_minutes: number | null
+          game_id: string
+          id: string
+          notes: string | null
+          victory_type: string
+        }
+        Insert: {
+          cooperative_win?: boolean | null
+          created_at?: string | null
+          date?: string
+          duration_minutes?: number | null
+          game_id: string
+          id?: string
+          notes?: string | null
+          victory_type?: string
+        }
+        Update: {
+          cooperative_win?: boolean | null
+          created_at?: string | null
+          date?: string
+          duration_minutes?: number | null
+          game_id?: string
+          id?: string
+          notes?: string | null
+          victory_type?: string
+        }
+        Relationships: []
+      }
+      session_participants: {
+        Row: {
+          id: string
+          is_winner: boolean | null
+          player_name: string
+          score: number | null
+          session_id: string
+          team: string | null
+        }
+        Insert: {
+          id?: string
+          is_winner?: boolean | null
+          player_name: string
+          score?: number | null
+          session_id: string
+          team?: string | null
+        }
+        Update: {
+          id?: string
+          is_winner?: boolean | null
+          player_name?: string
+          score?: number | null
+          session_id?: string
+          team?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "game_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       victories: {
         Row: {
           created_at: string | null

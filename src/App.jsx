@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Settings,
   Eye,
+  History,
 } from "lucide-react";
 import { initialGames } from "./data/games";
 import { imageMap } from "./data/images";
@@ -29,6 +30,7 @@ import {
   loadPlayers,
   savePlayers,
   parseDuration,
+  loadGameConfigs,
 } from "./utils/storage";
 import GameCard from "./components/GameCard";
 import GameDetail from "./components/GameDetail";
@@ -40,6 +42,7 @@ import OwnersPanel from "./components/OwnersPanel";
 import DiceRoller from "./components/DiceRoller";
 import EditGameForm from "./components/EditGameForm";
 import SettingsPanel from "./components/SettingsPanel";
+import GameHistoryPanel from "./components/GameHistoryPanel";
 
 function App() {
   const [games, setGames] = useState(() => {
@@ -57,6 +60,7 @@ function App() {
     return initialGames;
   });
   const [victories, setVictories] = useState([]);
+  const [gameConfigs, setGameConfigs] = useState({});
   const [players, setPlayers] = useState(() => loadPlayers());
 
   const [selectedGame, setSelectedGame] = useState(null);
@@ -69,7 +73,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [editingGame, setEditingGame] = useState(null);
   const [showAll, setShowAll] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOwner, setFilterOwner] = useState("all");
   const [filterCategories, setFilterCategories] = useState(new Set());
@@ -77,13 +81,15 @@ function App() {
   const [filterTime, setFilterTime] = useState(0);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => saveGames(games), [games]);
   useEffect(() => savePlayers(players), [players]);
 
-  // Load victories from DB on mount
+  // Load victories and game configs from DB on mount
   useEffect(() => {
     loadVictories().then((v) => setVictories(v));
+    loadGameConfigs().then((c) => setGameConfigs(c));
   }, []);
 
   useEffect(() => {
@@ -171,6 +177,7 @@ function App() {
         else if (showOwners) setShowOwners(false);
         else if (showDice) setShowDice(false);
         else if (showSettings) setShowSettings(false);
+        else if (showHistory) setShowHistory(false);
       }
       if (selectedGame) {
         if (e.key === "ArrowLeft") navigateGame(-1);
@@ -179,7 +186,11 @@ function App() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [selectedGame, editingGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, showSettings, navigateGame]);
+  }, [selectedGame, editingGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, showSettings, showHistory, navigateGame]);
+
+  const handleConfigChange = (gameId, config) => {
+    setGameConfigs((prev) => ({ ...prev, [gameId]: config }));
+  };
 
   const handleAddGame = (newGame) => {
     setGames((prev) => [...prev, newGame]);
@@ -289,6 +300,9 @@ function App() {
               <button onClick={() => setShowLeaderboard(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Leaderboard">
                 <Trophy size={18} />
               </button>
+              <button onClick={() => setShowHistory(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Historial">
+                <History size={18} />
+              </button>
               <button onClick={() => setShowSettings(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Configuración">
                 <Settings size={18} />
               </button>
@@ -308,6 +322,7 @@ function App() {
                 { label: "Maratón", icon: Route, action: () => { setShowMarathon(true); setShowMobileMenu(false); } },
                 { label: "Dados", icon: Dices, action: () => { setShowDice(true); setShowMobileMenu(false); } },
                 { label: "Leaderboard", icon: Trophy, action: () => { setShowLeaderboard(true); setShowMobileMenu(false); } },
+                { label: "Historial", icon: History, action: () => { setShowHistory(true); setShowMobileMenu(false); } },
                 { label: "Configuración", icon: Settings, action: () => { setShowSettings(true); setShowMobileMenu(false); } },
               ].map((item, i) => (
                 <button
@@ -579,6 +594,8 @@ function App() {
           expansions={getExpansions(selectedGame.id)}
           allGames={games}
           category={categoryMap[selectedGame.id]}
+          gameConfig={gameConfigs[selectedGame.id]}
+          players={players}
           onClose={() => setSelectedGame(null)}
           onEdit={() => setEditingGame(selectedGame)}
         />
@@ -587,14 +604,17 @@ function App() {
         <EditGameForm
           game={editingGame}
           players={players}
+          gameConfig={gameConfigs[editingGame.id]}
           onSave={(changes) => handleEditGame(editingGame.id, changes)}
           onClose={() => setEditingGame(null)}
+          onConfigChange={handleConfigChange}
         />
       )}
       {showAddForm && <AddGameForm games={games} players={players} onAdd={handleAddGame} onClose={() => setShowAddForm(false)} />}
       {showQuickPicker && <QuickPicker games={games} onClose={() => setShowQuickPicker(false)} />}
       {showMarathon && <RandomPicker games={games} onClose={() => setShowMarathon(false)} />}
       {showLeaderboard && <Leaderboard victories={victories} games={games} players={players} onAddVictory={handleAddVictory} onClose={() => setShowLeaderboard(false)} />}
+      {showHistory && <GameHistoryPanel games={games} players={players} gameConfigs={gameConfigs} onClose={() => setShowHistory(false)} />}
       {showOwners && (
         <OwnersPanel
           ownersData={ownersData}
