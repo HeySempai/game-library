@@ -62,6 +62,9 @@ function App() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showOwners, setShowOwners] = useState(false);
   const [showDice, setShowDice] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [editingGame, setEditingGame] = useState(null);
+  const [showAll, setShowAll] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOwner, setFilterOwner] = useState("all");
