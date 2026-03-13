@@ -1,4 +1,4 @@
-import { X, Users, Clock, Building2, User } from "lucide-react";
+import { X, Users, Clock, Building2, User, Pencil } from "lucide-react";
 import { ownersData } from "../data/owners";
 
 const avatarMap = {};
