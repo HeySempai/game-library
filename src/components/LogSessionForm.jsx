@@ -506,16 +506,29 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                   {participants.map((p, i) => {
                     if (!p.playerName) return null;
                     return (
-                      <div key={p.playerName} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
-                        {avatarMap[p.playerName] ? (
-                          <img src={avatarMap[p.playerName]} alt={p.playerName}
-                            className="w-9 h-9 rounded-full object-cover" width={36} height={36} decoding="async" />
+                      <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
+                        {p.isGuest ? (
+                          <>
+                            <span className="w-9 h-9 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-bold shrink-0">
+                              {p.playerName ? p.playerName.charAt(0).toUpperCase() : "?"}
+                            </span>
+                            <input type="text" value={p.playerName} onChange={(e) => updateParticipant(i, "playerName", e.target.value)}
+                              placeholder="Nombre del invitado"
+                              className="flex-1 bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-700 focus:border-orange-400 focus:outline-none" />
+                          </>
                         ) : (
-                          <span className="w-9 h-9 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-bold">
-                            {p.playerName.charAt(0)}
-                          </span>
+                          <>
+                            {avatarMap[p.playerName] ? (
+                              <img src={avatarMap[p.playerName]} alt={p.playerName}
+                                className="w-9 h-9 rounded-full object-cover" width={36} height={36} decoding="async" />
+                            ) : (
+                              <span className="w-9 h-9 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-bold">
+                                {p.playerName.charAt(0)}
+                              </span>
+                            )}
+                            <span className="text-sm font-medium text-gray-700 flex-1">{p.playerName.split(" ")[0]}</span>
+                          </>
                         )}
-                        <span className="text-sm font-medium text-gray-700 flex-1">{p.playerName.split(" ")[0]}</span>
 
                         {isScoreBased && (
                           <input type="number" value={p.score} onChange={(e) => updateParticipant(i, "score", e.target.value)}
