@@ -417,14 +417,23 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                         {/* Team selector — only show when teams exist */}
                         {victoryType === "team_winner" && activeTeams && (
                           <div className="flex gap-1">
-                            {activeTeams.map((t) => (
-                              <button key={t.name} type="button" onClick={() => updateParticipant(i, "team", t.name)}
-                                className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                                  p.team === t.name ? `${t.color} ${t.textColor} shadow-sm` : "bg-gray-200 text-gray-400"
-                                }`}>
-                                {t.name.length > 10 ? t.name.split(" ")[0] : t.name}
-                              </button>
-                            ))}
+                            {activeTeams.map((t) => {
+                              const countInTeam = participants.filter((pp) => pp.playerName && pp.team === t.name).length;
+                              const isCurrentTeam = p.team === t.name;
+                              const atMax = t.max && countInTeam >= t.max && !isCurrentTeam;
+                              return (
+                                <button key={t.name} type="button"
+                                  onClick={() => !atMax && updateParticipant(i, "team", t.name)}
+                                  disabled={atMax}
+                                  className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                                    atMax ? "bg-gray-100 text-gray-300 cursor-not-allowed" :
+                                    isCurrentTeam ? `${t.color} ${t.textColor} shadow-sm cursor-pointer` : "bg-gray-200 text-gray-400 cursor-pointer"
+                                  }`}>
+                                  {t.name.length > 10 ? t.name.split(" ")[0] : t.name}
+                                  {t.max ? ` (${countInTeam}/${t.max})` : ""}
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
 
