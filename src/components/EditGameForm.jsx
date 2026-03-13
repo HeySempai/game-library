@@ -3,13 +3,14 @@ import { X, Plus, Trash2 } from "lucide-react";
 import { categoryMap, allCategories } from "../data/categories";
 
 export default function EditGameForm({ game, players, onSave, onClose }) {
+  const [nombre, setNombre] = useState(game.nombre);
   const [owners, setOwners] = useState([...game.owners]);
   const [category, setCategory] = useState(categoryMap[game.id] || "");
   const [newOwner, setNewOwner] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ owners, category });
+    onSave({ nombre: nombre.trim() || game.nombre, owners, category });
     onClose();
   };
 
@@ -50,6 +51,17 @@ export default function EditGameForm({ game, players, onSave, onClose }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-5">
+          {/* Nombre */}
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-1">Nombre</label>
+            <input
+              type="text"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 text-sm focus:border-orange-400 focus:outline-none"
+            />
+          </div>
+
           {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-2">Categoría</label>

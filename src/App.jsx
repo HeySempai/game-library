@@ -187,19 +187,17 @@ function App() {
       if (!players.includes(owner)) setPlayers((prev) => [...prev, owner]);
     });
   };
-  const handleEditGame = (gameId, { owners, category }) => {
+  const handleEditGame = (gameId, { nombre, owners, category }) => {
     setGames((prev) =>
-      prev.map((g) => (g.id === gameId ? { ...g, owners } : g))
+      prev.map((g) => (g.id === gameId ? { ...g, nombre: nombre || g.nombre, owners } : g))
     );
-    // Update categoryMap dynamically (it's imported but we store overrides in localStorage)
     if (category) {
       categoryMap[gameId] = category;
     } else {
       delete categoryMap[gameId];
     }
-    // Update selected game if open
     if (selectedGame?.id === gameId) {
-      setSelectedGame((prev) => ({ ...prev, owners }));
+      setSelectedGame((prev) => ({ ...prev, nombre: nombre || prev.nombre, owners }));
     }
   };
 
