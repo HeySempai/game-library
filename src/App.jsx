@@ -47,17 +47,27 @@ import GameHistoryPanel from "./components/GameHistoryPanel";
 function App() {
   const [games, setGames] = useState(() => {
     const stored = loadGames();
-    if (stored) {
-      // Build a map of canonical names from initialGames
-      const nameMap = {};
-      initialGames.forEach((g) => { nameMap[g.id] = g.nombre; });
-      return stored.map((g) => ({
-        ...g,
-        nombre: nameMap[g.id] || g.nombre,
-        imageUrl: imageMap[g.id] || g.imageUrl || "",
-      }));
-    }
-    return initialGames;
+    if (!stored) return initialGames;
+
+    const storedById = new Map(stored.map((g) => [g.id, g]));
+
+    // Keep canonical catalog data (players, duration, ids, etc.)
+    // and only preserve user-editable fields from local storage.
+    const mergedCatalog = initialGames.map((canonical) => {
+      const cached = storedById.get(canonical.id);
+      return {
+        ...canonical,
+        owners: cached?.owners || canonical.owners,
+        imageUrl: imageMap[canonical.id] || cached?.imageUrl || canonical.imageUrl || "",
+      };
+    });
+
+    // Preserve custom user-created games that don't exist in the canonical catalog.
+    const customGames = stored
+      .filter((g) => !storedById.has(g.id) ? false : !initialGames.some((ig) => ig.id === g.id))
+      .map((g) => ({ ...g, imageUrl: g.imageUrl || "" }));
+
+    return [...mergedCatalog, ...customGames];
   });
   const [victories, setVictories] = useState([]);
   const [gameConfigs, setGameConfigs] = useState({});
