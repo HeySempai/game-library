@@ -406,7 +406,7 @@ const _games = [
     id: "side-effects",
     tipo: "Juego Base",
     nombre: "Side Effects",
-    duracion: "10-30 mins",
+    duracion: "30 mins",
     minJugadores: 2,
     maxJugadores: 8,
     jugadoresDisplay: "2-8",
