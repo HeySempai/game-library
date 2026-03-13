@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { X, Plus, Trash2, Trophy, Save, Check, Package } from "lucide-react";
+import { X, Plus, Trash2, Trophy, Save, Check, Package, Swords, Crown, Shield, EyeOff } from "lucide-react";
 import { ownersData } from "../data/owners";
 import { getEffectivePlayerRange } from "../utils/storage";
 
