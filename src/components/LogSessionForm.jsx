@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { X, Plus, Trash2, Trophy, Save, Check, Package } from "lucide-react";
+import { X, Plus, Trash2, Trophy, Save, Check, Package, Swords, Crown, Shield, EyeOff } from "lucide-react";
 import { ownersData } from "../data/owners";
 import { getEffectivePlayerRange } from "../utils/storage";
 
@@ -20,12 +20,20 @@ const TEAM_PRESETS = {
   samurai: {
     label: "Facciones",
     teams: [
-      { name: "Ronin", color: "bg-red-500", textColor: "text-white", max: 1 },
-      { name: "Shogun", color: "bg-amber-400", textColor: "text-amber-900", max: 1 },
-      { name: "Samurai", color: "bg-amber-400", textColor: "text-amber-900" },
-      { name: "Ninja", color: "bg-blue-500", textColor: "text-white" },
+      { name: "Ronin", color: "bg-red-500", textColor: "text-white", max: 1, icon: "Swords" },
+      { name: "Shogun", color: "bg-amber-400", textColor: "text-amber-900", max: 1, icon: "Crown" },
+      { name: "Samurai", color: "bg-amber-400", textColor: "text-amber-900", icon: "Shield" },
+      { name: "Ninja", color: "bg-blue-500", textColor: "text-white", icon: "EyeOff" },
     ],
-    requireAllTeams: true,
+    // Distribution per player count: [Ronin, Shogun, Samurai, Ninja]
+    distribution: {
+      3: [1, 1, 0, 1],
+      4: [1, 1, 0, 2],
+      5: [1, 1, 0, 3],
+      6: [1, 1, 1, 3],
+      7: [1, 1, 2, 3],
+    },
+    requireAllTeams: false, // Not all teams required at low counts (e.g. 3p has no Samurai)
   },
   "salem-1692": {
     label: "Roles",
@@ -96,30 +104,34 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const effectiveMaxPlayers = activeFormat?.maxPlayers || maxPlayers;
 
   // Helper: assign team based on index and active teams
-  const assignTeam = (index, teams, totalPlayers) => {
+  const assignTeam = (index, teams, totalPlayers, presetObj) => {
     if (!teams || teams.length === 0) return "";
 
-    // Smart assignment for presets with max constraints (e.g. Samurai Sword)
+    // Use explicit distribution map if available
+    const dist = presetObj?.distribution?.[totalPlayers];
+    if (dist) {
+      const assignments = [];
+      teams.forEach((t, ti) => {
+        for (let c = 0; c < (dist[ti] || 0); c++) assignments.push(t.name);
+      });
+      return assignments[index] || teams[teams.length - 1].name;
+    }
+
+    // Smart assignment for presets with max constraints
     const hasMaxConstraints = teams.some((t) => t.max);
     if (hasMaxConstraints) {
-      // Build assignment list: first place max-constrained roles, then distribute rest
       const assignments = [];
       const constrained = teams.filter((t) => t.max);
       const unconstrained = teams.filter((t) => !t.max);
-
-      // Assign constrained roles first (1 each)
       constrained.forEach((t) => {
         for (let c = 0; c < (t.max || 1); c++) assignments.push(t.name);
       });
-
-      // Distribute remaining players across unconstrained teams evenly
       const remaining = (totalPlayers || effectiveMaxPlayers) - assignments.length;
       if (unconstrained.length > 0) {
         for (let r = 0; r < remaining; r++) {
           assignments.push(unconstrained[r % unconstrained.length].name);
         }
       }
-
       return assignments[index] || unconstrained[0]?.name || teams[0].name;
     }
 
@@ -138,7 +150,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     const count = Math.min(players.length, max);
     return players.slice(0, count).map((p, idx) => ({
       playerName: p, score: "", isWinner: false,
-      team: teams ? assignTeam(idx, teams, count) : "",
+      team: teams ? assignTeam(idx, teams, count, preset) : "",
     }));
   }, []);
   const [participants, setParticipants] = useState(initialPlayers);
@@ -158,20 +170,44 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
 
   const isScoreBased = victoryType === "score_descending" || victoryType === "score_ascending";
 
-  // Team validation for presets with requireAllTeams (e.g. Samurai Sword)
+  // Team validation for presets
   const teamValidation = useMemo(() => {
     const teams = activeTeams;
     const presetConfig = preset;
-    if (!teams || !presetConfig?.requireAllTeams) return { valid: true, errors: [] };
+    if (!teams) return { valid: true, errors: [] };
 
     const validParticipants = participants.filter((p) => p.playerName.trim());
+    const playerCount = validParticipants.length;
     const errors = [];
 
-    // Check all teams are represented
+    // Check distribution constraints if available
+    const dist = presetConfig?.distribution?.[playerCount];
+    if (dist) {
+      teams.forEach((t, ti) => {
+        const expected = dist[ti];
+        const actual = validParticipants.filter((p) => p.team === t.name).length;
+        if (expected > 0 && actual !== expected) {
+          errors.push(`${t.name}: debe haber ${expected}, hay ${actual}`);
+        }
+        if (expected === 0 && actual > 0) {
+          errors.push(`${t.name}: no aplica con ${playerCount} jugadores`);
+        }
+      });
+    } else if (presetConfig?.requireAllTeams) {
+      // Fallback: all teams must be represented
+      teams.forEach((t) => {
+        const count = validParticipants.filter((p) => p.team === t.name).length;
+        if (count === 0) errors.push(`Falta asignar: ${t.name}`);
+        if (t.max && count > t.max) errors.push(`${t.name}: máximo ${t.max}`);
+      });
+    }
+
+    // Always check max constraints
     teams.forEach((t) => {
-      const count = validParticipants.filter((p) => p.team === t.name).length;
-      if (count === 0) errors.push(`Falta asignar: ${t.name}`);
-      if (t.max && count > t.max) errors.push(`${t.name}: máximo ${t.max}`);
+      if (t.max) {
+        const count = validParticipants.filter((p) => p.team === t.name).length;
+        if (count > t.max) errors.push(`${t.name}: máximo ${t.max}`);
+      }
     });
 
     // Check no unassigned players
@@ -191,7 +227,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     const newIdx = participants.length;
     setParticipants([...participants, {
       playerName: available[0] || "", score: "", isWinner: false,
-      team: activeTeams ? assignTeam(newIdx, activeTeams) : "",
+      team: activeTeams ? assignTeam(newIdx, activeTeams, participants.length + 1, preset) : "",
     }]);
   };
 
@@ -450,16 +486,22 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                               const countInTeam = participants.filter((pp) => pp.playerName && pp.team === t.name).length;
                               const isCurrentTeam = p.team === t.name;
                               const atMax = t.max && countInTeam >= t.max && !isCurrentTeam;
+                              const IconComp = t.icon ? { Swords, Crown, Shield, EyeOff }[t.icon] : null;
                               return (
                                 <button key={t.name} type="button"
                                   onClick={() => !atMax && updateParticipant(i, "team", t.name)}
                                   disabled={atMax}
-                                  className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                                  title={`${t.name}${t.max ? ` (${countInTeam}/${t.max})` : ""}`}
+                                  className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 ${
                                     atMax ? "bg-gray-100 text-gray-300 cursor-not-allowed" :
                                     isCurrentTeam ? `${t.color} ${t.textColor} shadow-sm cursor-pointer` : "bg-gray-200 text-gray-400 cursor-pointer"
                                   }`}>
-                                  {t.name.length > 10 ? t.name.split(" ")[0] : t.name}
-                                  {t.max ? ` (${countInTeam}/${t.max})` : ""}
+                                  {IconComp ? <IconComp size={12} /> : null}
+                                  {!IconComp && (t.name.length > 10 ? t.name.split(" ")[0] : t.name)}
+                                  {t.max ? ` ${countInTeam}/${t.max}` : ""}
+                                </button>
+                              );
+                            })}
                                 </button>
                               );
                             })}
