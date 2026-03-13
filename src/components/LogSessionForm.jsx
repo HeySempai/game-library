@@ -266,12 +266,11 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const usedNames = participants.map((p) => p.playerName).filter(Boolean);
   const canAddMore = participants.length < effectiveMaxPlayers;
 
-  const addParticipant = () => {
+  const addGuestParticipant = () => {
     if (!canAddMore) return;
-    const available = players.filter((p) => !usedNames.includes(p));
     const newIdx = participants.length;
     setParticipants([...participants, {
-      playerName: available[0] || "", score: "", isWinner: false,
+      playerName: "", score: "", isWinner: false, isGuest: true,
       team: activeTeams ? assignTeam(newIdx, activeTeams, participants.length + 1, preset) : "",
     }]);
   };
