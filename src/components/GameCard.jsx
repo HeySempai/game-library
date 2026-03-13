@@ -34,7 +34,7 @@ export default function GameCard({ game, allGames, expansions, category, onClick
       onClick={onClick}
       className="group text-left w-full cursor-pointer transition-all duration-200 hover:-translate-y-1"
     >
-      <div className="bg-[#f2f3f5] rounded-2xl p-4 pb-4 transition-colors duration-200 group-hover:bg-[#e8e9ec]">
+      <div className="bg-[#f2f3f5] rounded-xl sm:rounded-2xl p-3 sm:p-4 pb-3 sm:pb-4 transition-colors duration-200 group-hover:bg-[#e8e9ec]">
         {/* Image container */}
         <div className="relative aspect-[4/3] flex items-center justify-center">
           {game.imageUrl ? (
