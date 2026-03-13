@@ -793,7 +793,7 @@ const _games = [
     id: "salem-1692",
     tipo: "Juego Base",
     nombre: "Salem 1692",
-    duracion: "25-35 mins",
+    duracion: "60 mins",
     minJugadores: 4,
     maxJugadores: 12,
     jugadoresDisplay: "4-12",
