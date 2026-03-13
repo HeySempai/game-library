@@ -231,15 +231,15 @@ function App() {
           </div>
 
           {/* Filters */}
-          <div className="flex items-center gap-x-4 mt-3 pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-x-5 mt-3 pt-3 border-t border-gray-100">
             {/* Owner avatars */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <UserCircle size={14} className="text-gray-400 shrink-0" />
+            <div className="flex items-center gap-2 shrink-0">
+              <UserCircle size={15} className="text-gray-400 shrink-0" />
               {ownersData.map((o) => (
                 <button
                   key={o.id}
                   onClick={() => setFilterOwner(filterOwner === o.nombre ? "all" : o.nombre)}
-                  className={`w-7 h-7 rounded-full overflow-hidden border-2 transition-all cursor-pointer ${
+                  className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-all cursor-pointer ${
                     filterOwner === o.nombre
                       ? "border-orange-500 scale-110 shadow-md"
                       : filterOwner === "all"
@@ -256,8 +256,8 @@ function App() {
             <div className="w-px h-5 bg-gray-200 shrink-0" />
 
             {/* Category pills */}
-            <div className="flex items-center gap-1 shrink-0">
-              <Shapes size={14} className="text-gray-400 shrink-0 mr-0.5" />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Shapes size={15} className="text-gray-400 shrink-0 mr-0.5" />
               {allCategories.map((cat) => {
                 const active = filterCategories.has(cat);
                 const colors = categoryColors[cat];
@@ -265,7 +265,7 @@ function App() {
                   <button
                     key={cat}
                     onClick={() => toggleCategory(cat)}
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                    className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer whitespace-nowrap ${
                       active
                         ? `${colors.bg} text-white shadow-sm`
                         : `${colors.inactive} opacity-60 hover:opacity-100`
@@ -280,13 +280,13 @@ function App() {
             <div className="w-px h-5 bg-gray-200 shrink-0" />
 
             {/* Player range pills */}
-            <div className="flex items-center gap-1 shrink-0">
-              <UsersIcon size={14} className="text-gray-400 shrink-0 mr-0.5" />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <UsersIcon size={15} className="text-gray-400 shrink-0 mr-0.5" />
               {playerRanges.map((r) => (
                 <button
                   key={r.label}
                   onClick={() => setFilterPlayerRange(filterPlayerRange === r.label ? "all" : r.label)}
-                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all cursor-pointer ${
+                  className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                     filterPlayerRange === r.label
                       ? "bg-orange-500 text-white shadow-sm"
                       : filterPlayerRange === "all"
@@ -302,15 +302,15 @@ function App() {
             <div className="w-px h-5 bg-gray-200 shrink-0" />
 
             {/* Time pills */}
-            <div className="flex items-center gap-1 shrink-0">
-              <Clock size={14} className="text-gray-400 shrink-0 mr-0.5" />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Clock size={15} className="text-gray-400 shrink-0 mr-0.5" />
               {[15, 30, 60, 180].map((t) => {
                 const label = t === 180 ? "180+" : `${t}`;
                 return (
                   <button
                     key={t}
                     onClick={() => setFilterTime(filterTime === t ? 0 : t)}
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all cursor-pointer ${
+                    className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                       filterTime === t
                         ? "bg-orange-500 text-white shadow-sm"
                         : filterTime === 0
