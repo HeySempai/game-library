@@ -103,6 +103,7 @@ export default function QuickPicker({ games, onClose }) {
   const [playerCount, setPlayerCount] = useState(null);
   // All categories start active - deactivating removes them
   const [deactivated, setDeactivated] = useState(new Set());
+  const rngDisabled = loadRngDisabled();
   const [spinning, setSpinning] = useState(false);
   const [currentName, setCurrentName] = useState("");
   const [result, setResult] = useState(null);
