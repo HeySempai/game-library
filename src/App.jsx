@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Settings,
   Eye,
+  History,
 } from "lucide-react";
 import { initialGames } from "./data/games";
 import { imageMap } from "./data/images";
@@ -29,6 +30,7 @@ import {
   loadPlayers,
   savePlayers,
   parseDuration,
+  loadGameConfigs,
 } from "./utils/storage";
 import GameCard from "./components/GameCard";
 import GameDetail from "./components/GameDetail";
@@ -40,6 +42,7 @@ import OwnersPanel from "./components/OwnersPanel";
 import DiceRoller from "./components/DiceRoller";
 import EditGameForm from "./components/EditGameForm";
 import SettingsPanel from "./components/SettingsPanel";
+import GameHistoryPanel from "./components/GameHistoryPanel";
 
 function App() {
   const [games, setGames] = useState(() => {
