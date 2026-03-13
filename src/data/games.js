@@ -528,7 +528,7 @@ const _games = [
     id: "hp-hogwarts",
     tipo: "Juego Base",
     nombre: "Harry Potter: Hogwarts Battle",
-    duracion: "30-60 mins",
+    duracion: "60 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
