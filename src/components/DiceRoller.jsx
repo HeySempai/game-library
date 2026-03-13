@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { X, Dices, RotateCcw } from "lucide-react";
+import { playClick, playPop } from "../utils/sounds";
 
 const DICE_FACES = {
   1: [false, false, false, false, true, false, false, false, false],
@@ -9,6 +10,40 @@ const DICE_FACES = {
   5: [true, false, true, false, true, false, true, false, true],
   6: [true, false, true, true, false, true, true, false, true],
 };
+
+function playDiceSound() {
+  // Rattle-like sound: multiple quick clicks
+  const ac = new (window.AudioContext || window.webkitAudioContext)();
+  for (let i = 0; i < 6; i++) {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = "square";
+    osc.frequency.value = 300 + Math.random() * 600;
+    const t = ac.currentTime + i * 0.06;
+    gain.gain.setValueAtTime(0.08, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + 0.04);
+  }
+}
+
+function playCoinSound() {
+  const ac = new (window.AudioContext || window.webkitAudioContext)();
+  // Metallic ring
+  const osc = ac.createOscillator();
+  const gain = ac.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(2000, ac.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(800, ac.currentTime + 0.3);
+  gain.gain.setValueAtTime(0.15, ac.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.3);
+  osc.connect(gain);
+  gain.connect(ac.destination);
+  osc.start(ac.currentTime);
+  osc.stop(ac.currentTime + 0.3);
+}
 
 function DiceFace({ value, rolling, index }) {
   const dots = DICE_FACES[value];
@@ -46,20 +81,26 @@ function CoinFace({ value, flipping, index }) {
 }
 
 export default function DiceRoller({ onClose }) {
-  const [mode, setMode] = useState("dice"); // "dice" | "coin"
-  const [diceCount, setDiceCount] = useState(2);
+  const [mode, setMode] = useState("dice");
+  const [diceCount, setDiceCount] = useState(1);
   const [results, setResults] = useState([]);
   const [rolling, setRolling] = useState(false);
   const [history, setHistory] = useState([]);
 
+  const maxCount = mode === "dice" ? 2 : 1;
+
   const roll = useCallback(() => {
+    const count = mode === "coin" ? 1 : diceCount;
     setRolling(true);
-    // Quick intermediate visual randomization
+
+    if (mode === "dice") playDiceSound();
+    else playCoinSound();
+
     const intervalId = setInterval(() => {
       if (mode === "dice") {
-        setResults(Array.from({ length: diceCount }, () => Math.ceil(Math.random() * 6)));
+        setResults(Array.from({ length: count }, () => Math.ceil(Math.random() * 6)));
       } else {
-        setResults(Array.from({ length: diceCount }, () => (Math.random() > 0.5 ? "Cara" : "Cruz")));
+        setResults([Math.random() > 0.5 ? "Cara" : "Cruz"]);
       }
     }, 60);
 
@@ -67,10 +108,11 @@ export default function DiceRoller({ onClose }) {
       clearInterval(intervalId);
       const final =
         mode === "dice"
-          ? Array.from({ length: diceCount }, () => Math.ceil(Math.random() * 6))
-          : Array.from({ length: diceCount }, () => (Math.random() > 0.5 ? "Cara" : "Cruz"));
+          ? Array.from({ length: count }, () => Math.ceil(Math.random() * 6))
+          : [Math.random() > 0.5 ? "Cara" : "Cruz"];
       setResults(final);
       setRolling(false);
+      playPop();
       setHistory((prev) => [{ mode, results: final, time: new Date() }, ...prev].slice(0, 20));
     }, 600);
   }, [mode, diceCount]);
@@ -95,7 +137,7 @@ export default function DiceRoller({ onClose }) {
         <div className="px-5 pb-4">
           <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
             <button
-              onClick={() => { setMode("dice"); setResults([]); }}
+              onClick={() => { setMode("dice"); setDiceCount(1); setResults([]); }}
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
                 mode === "dice" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
@@ -103,7 +145,7 @@ export default function DiceRoller({ onClose }) {
               🎲 Dados
             </button>
             <button
-              onClick={() => { setMode("coin"); setResults([]); }}
+              onClick={() => { setMode("coin"); setDiceCount(1); setResults([]); }}
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
                 mode === "coin" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
@@ -113,27 +155,29 @@ export default function DiceRoller({ onClose }) {
           </div>
         </div>
 
-        {/* Count selector */}
-        <div className="px-5 pb-4">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
-            {mode === "dice" ? "Cantidad de dados" : "Cantidad de monedas"}
-          </p>
-          <div className="flex gap-1.5">
-            {[1, 2, 3, 4, 5, 6].map((n) => (
-              <button
-                key={n}
-                onClick={() => { setDiceCount(n); setResults([]); }}
-                className={`w-9 h-9 rounded-lg text-sm font-bold transition-all cursor-pointer ${
-                  diceCount === n
-                    ? "bg-orange-500 text-white shadow-sm"
-                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                }`}
-              >
-                {n}
-              </button>
-            ))}
+        {/* Count selector - only for dice */}
+        {mode === "dice" && (
+          <div className="px-5 pb-4">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              Cantidad de dados
+            </p>
+            <div className="flex gap-1.5">
+              {[1, 2].map((n) => (
+                <button
+                  key={n}
+                  onClick={() => { setDiceCount(n); setResults([]); }}
+                  className={`w-9 h-9 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                    diceCount === n
+                      ? "bg-orange-500 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Results area */}
         <div className="px-5 pb-2 min-h-[140px] flex flex-col items-center justify-center">
