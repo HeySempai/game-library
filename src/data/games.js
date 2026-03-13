@@ -733,7 +733,7 @@ const _games = [
     id: "survive",
     tipo: "Juego Base",
     nombre: "Survive: Escape from Atlantis!",
-    duracion: "45-60 mins",
+    duracion: "90 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
