@@ -44,7 +44,7 @@ function App() {
     }
     return initialGames;
   });
-  const [victories, setVictories] = useState(() => loadVictories());
+  const [victories, setVictories] = useState([]);
   const [players, setPlayers] = useState(() => loadPlayers());
 
   const [selectedGame, setSelectedGame] = useState(null);
