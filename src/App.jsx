@@ -149,6 +149,7 @@ function App() {
         else if (showLeaderboard) setShowLeaderboard(false);
         else if (showOwners) setShowOwners(false);
         else if (showDice) setShowDice(false);
+      }
       if (selectedGame) {
         if (e.key === "ArrowLeft") navigateGame(-1);
         if (e.key === "ArrowRight") navigateGame(1);
