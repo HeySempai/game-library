@@ -540,7 +540,7 @@ const _games = [
     id: "santorini",
     tipo: "Juego Base",
     nombre: "Santorini",
-    duracion: "20 mins",
+    duracion: "15 mins",
     minJugadores: 2,
     maxJugadores: 4,
     jugadoresDisplay: "2-4",
