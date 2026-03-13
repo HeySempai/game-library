@@ -564,7 +564,7 @@ const _games = [
     id: "the-office",
     tipo: "Juego Base",
     nombre: "The Office: Assistant to the Regional Manager",
-    duracion: "20-40 mins",
+    duracion: "30 mins",
     minJugadores: 3,
     maxJugadores: 99,
     jugadoresDisplay: "3+",
