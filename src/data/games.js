@@ -346,7 +346,7 @@ const _games = [
     id: "betrayal",
     tipo: "Juego Base",
     nombre: "Betrayal at House on the Hill",
-    duracion: "60 mins",
+    duracion: "90 mins",
     minJugadores: 3,
     maxJugadores: 6,
     jugadoresDisplay: "3-6",
