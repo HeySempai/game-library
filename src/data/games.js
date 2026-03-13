@@ -358,7 +358,7 @@ const _games = [
     id: "werewolf",
     tipo: "Juego Base",
     nombre: "One Night Ultimate Werewolf",
-    duracion: "10 mins",
+    duracion: "15 mins",
     minJugadores: 3,
     maxJugadores: 10,
     jugadoresDisplay: "3-10",
