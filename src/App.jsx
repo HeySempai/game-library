@@ -268,7 +268,7 @@ function App() {
                   <button
                     key={cat}
                     onClick={() => toggleCategory(cat)}
-                    className={`text-[10px] font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                    className={`text-[10px] font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer whitespace-nowrap ${
                       active
                         ? `${colors.bg} text-white shadow-sm`
                         : `${colors.inactive} opacity-60 hover:opacity-100`
