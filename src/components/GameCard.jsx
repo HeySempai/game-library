@@ -53,7 +53,10 @@ export default function GameCard({ game, allGames, expansions, category, onClick
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className="relative rounded-xl sm:rounded-2xl p-[2.5px] overflow-hidden transition-all duration-300"
-        style={{ background: isHovered ? undefined : '#ffffff' }}
+        style={{
+          background: isHovered ? undefined : '#ffffff',
+          boxShadow: isHovered ? '0 0 12px 2px rgba(255,140,0,0.2), 0 0 4px 1px rgba(255,180,80,0.15)' : 'none',
+        }}
       >
         {/* Animated rotating gradient border */}
         <div
