@@ -52,25 +52,36 @@ export default function GameCard({ game, allGames, expansions, category, onClick
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="relative bg-[#f2f3f5] rounded-xl sm:rounded-2xl p-[1.5px] overflow-hidden transition-all duration-300"
+        className="relative rounded-xl sm:rounded-2xl p-[1.5px] overflow-hidden transition-all duration-300"
+        style={{ background: isHovered ? undefined : '#f2f3f5' }}
       >
-        {/* Spotlight border overlay */}
+        {/* Animated rotating gradient border */}
         <div
-          className="absolute inset-0 rounded-xl sm:rounded-2xl opacity-0 transition-opacity duration-300 pointer-events-none"
+          className="absolute inset-[-50%] transition-opacity duration-300 pointer-events-none"
           style={{
             opacity: isHovered ? 1 : 0,
-            background: `radial-gradient(350px circle at ${mousePos.x}px ${mousePos.y}px, rgba(57,255,120,0.45), rgba(0,255,136,0.15) 40%, transparent 70%)`,
+            background: 'conic-gradient(from 0deg, #ff8c00, #ff6b00, #ffaa33, #ff5500, #ff8c00)',
+            animation: isHovered ? 'spin-border 2.5s linear infinite' : 'none',
+          }}
+        />
+
+        {/* Spotlight radial glow on border */}
+        <div
+          className="absolute inset-0 rounded-xl sm:rounded-2xl transition-opacity duration-300 pointer-events-none"
+          style={{
+            opacity: isHovered ? 1 : 0,
+            background: `radial-gradient(350px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,140,0,0.55), rgba(255,107,0,0.2) 40%, transparent 70%)`,
           }}
         />
 
         {/* Inner card */}
         <div className="relative bg-[#f2f3f5] rounded-[10px] sm:rounded-[14px] p-3 sm:p-4 pb-3 sm:pb-4 transition-colors duration-300 group-hover:bg-[#eaebee] overflow-hidden">
-          {/* Spotlight glow inside */}
+          {/* Subtle inner spotlight */}
           <div
             className="absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none"
             style={{
               opacity: isHovered ? 1 : 0,
-              background: `radial-gradient(300px circle at ${mousePos.x}px ${mousePos.y}px, rgba(57,255,120,0.06), transparent 60%)`,
+              background: `radial-gradient(250px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,140,0,0.05), transparent 60%)`,
             }}
           />
 
@@ -88,7 +99,6 @@ export default function GameCard({ game, allGames, expansions, category, onClick
             ) : (
               <span className="text-6xl opacity-20">🎲</span>
             )}
-            {/* Expansion count circle */}
             {expCount > 0 && (
               <span className="absolute bottom-1 right-1 w-7 h-7 flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white shadow-sm">
                 +{expCount}
@@ -98,7 +108,6 @@ export default function GameCard({ game, allGames, expansions, category, onClick
 
           {/* Info */}
           <div className="relative pt-3">
-            {/* Category pill */}
             {category && (
               <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full text-white mb-1.5 ${categoryColors[category]}`}>
                 {category}
@@ -125,7 +134,6 @@ export default function GameCard({ game, allGames, expansions, category, onClick
                 {game.duracion}
               </span>
             </div>
-            {/* Owner avatars */}
             <div className="flex items-center gap-1 mt-2">
               {game.owners.map((owner, i) => (
                 <div key={i} className="group/avatar relative">
