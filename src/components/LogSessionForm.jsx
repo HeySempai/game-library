@@ -282,7 +282,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
               <label className="block text-xs font-medium text-gray-500 mb-2">{preset.label}</label>
               <div className="flex gap-2">
                 {preset.formats.map((f) => (
-                  <button key={f.id} type="button" onClick={() => setSelectedFormat(f.id)}
+                  <button key={f.id} type="button" onClick={() => handleFormatChange(f.id)}
                     className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${
                       selectedFormat === f.id ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                     }`}>
