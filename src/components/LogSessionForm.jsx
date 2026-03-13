@@ -104,30 +104,34 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const effectiveMaxPlayers = activeFormat?.maxPlayers || maxPlayers;
 
   // Helper: assign team based on index and active teams
-  const assignTeam = (index, teams, totalPlayers) => {
+  const assignTeam = (index, teams, totalPlayers, presetObj) => {
     if (!teams || teams.length === 0) return "";
 
-    // Smart assignment for presets with max constraints (e.g. Samurai Sword)
+    // Use explicit distribution map if available
+    const dist = presetObj?.distribution?.[totalPlayers];
+    if (dist) {
+      const assignments = [];
+      teams.forEach((t, ti) => {
+        for (let c = 0; c < (dist[ti] || 0); c++) assignments.push(t.name);
+      });
+      return assignments[index] || teams[teams.length - 1].name;
+    }
+
+    // Smart assignment for presets with max constraints
     const hasMaxConstraints = teams.some((t) => t.max);
     if (hasMaxConstraints) {
-      // Build assignment list: first place max-constrained roles, then distribute rest
       const assignments = [];
       const constrained = teams.filter((t) => t.max);
       const unconstrained = teams.filter((t) => !t.max);
-
-      // Assign constrained roles first (1 each)
       constrained.forEach((t) => {
         for (let c = 0; c < (t.max || 1); c++) assignments.push(t.name);
       });
-
-      // Distribute remaining players across unconstrained teams evenly
       const remaining = (totalPlayers || effectiveMaxPlayers) - assignments.length;
       if (unconstrained.length > 0) {
         for (let r = 0; r < remaining; r++) {
           assignments.push(unconstrained[r % unconstrained.length].name);
         }
       }
-
       return assignments[index] || unconstrained[0]?.name || teams[0].name;
     }
 
