@@ -45,8 +45,12 @@ function App() {
   const [games, setGames] = useState(() => {
     const stored = loadGames();
     if (stored) {
+      // Build a map of canonical names from initialGames
+      const nameMap = {};
+      initialGames.forEach((g) => { nameMap[g.id] = g.nombre; });
       return stored.map((g) => ({
         ...g,
+        nombre: nameMap[g.id] || g.nombre,
         imageUrl: g.imageUrl || imageMap[g.id] || "",
       }));
     }
@@ -593,7 +597,25 @@ function App() {
       {showQuickPicker && <QuickPicker games={games} onClose={() => setShowQuickPicker(false)} />}
       {showMarathon && <RandomPicker games={games} onClose={() => setShowMarathon(false)} />}
       {showLeaderboard && <Leaderboard victories={victories} games={games} players={players} onAddVictory={handleAddVictory} onClose={() => setShowLeaderboard(false)} />}
-      {showOwners && <OwnersPanel ownersData={ownersData} games={games} victories={victories} onClose={() => setShowOwners(false)} />}
+      {showOwners && (
+        <OwnersPanel
+          ownersData={ownersData}
+          games={games}
+          victories={victories}
+          players={players}
+          onClose={() => setShowOwners(false)}
+          onAddGame={(game, action, preloadOwner) => {
+            if (action === "update" && game) {
+              setGames((prev) => prev.map((g) => g.id === game.id ? game : g));
+            } else if (action === "new") {
+              setShowOwners(false);
+              setShowAddForm(true);
+              // Store preload owner in sessionStorage for AddGameForm
+              if (preloadOwner) sessionStorage.setItem("preloadOwner", preloadOwner);
+            }
+          }}
+        />
+      )}
       {showDice && <DiceRoller onClose={() => setShowDice(false)} />}
       {showSettings && <SettingsPanel games={games} onClose={() => setShowSettings(false)} />}
     </div>
