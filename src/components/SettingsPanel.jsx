@@ -1,35 +1,28 @@
 import { useState, useEffect } from "react";
 import { X, Settings } from "lucide-react";
+import { loadRngDisabled, saveRngDisabled } from "../utils/storage";
 
-const RNG_KEY = "boardgamehub_rng_disabled";
-
-export function loadRngDisabled() {
-  const stored = localStorage.getItem(RNG_KEY);
-  return stored ? new Set(JSON.parse(stored)) : new Set();
-}
-
-export function saveRngDisabled(disabledSet) {
-  localStorage.setItem(RNG_KEY, JSON.stringify([...disabledSet]));
-}
+export { loadRngDisabled };
 
 export default function SettingsPanel({ games, onClose }) {
   const baseGames = games.filter((g) => g.tipo === "Juego Base").sort((a, b) => a.nombre.localeCompare(b.nombre));
-  const [disabled, setDisabled] = useState(() => loadRngDisabled());
+  const [disabled, setDisabled] = useState(new Set());
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    saveRngDisabled(disabled);
-  }, [disabled]);
+    loadRngDisabled().then((set) => { setDisabled(set); setLoaded(true); });
+  }, []);
 
   const toggle = (id) => {
-    setDisabled((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    const next = new Set(disabled);
+    const nowDisabled = !next.has(id);
+    if (nowDisabled) next.add(id);
+    else next.delete(id);
+    setDisabled(next);
+    saveRngDisabled(id, nowDisabled);
   };
 
-  const enabledCount = baseGames.length - disabled.size;
+  const enabledCount = baseGames.length - [...disabled].filter((id) => baseGames.some((g) => g.id === id)).length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={onClose}>
@@ -45,7 +38,7 @@ export default function SettingsPanel({ games, onClose }) {
 
         <div className="px-5 pt-3 pb-2 shrink-0">
           <p className="text-xs text-gray-400">
-            {enabledCount} de {baseGames.length} juegos activos en la ruleta
+            {loaded ? `${enabledCount} de ${baseGames.length} juegos activos en la ruleta` : "Cargando..."}
           </p>
         </div>
 

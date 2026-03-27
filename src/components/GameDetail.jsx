@@ -3,6 +3,9 @@ import { X, Users, Clock, Building2, Pencil, History, Plus, Calendar, ChevronLef
 import { ownersData } from "../data/owners";
 import { loadGameSessions, loadSessionParticipants } from "../utils/storage";
 import LogSessionForm from "./LogSessionForm";
+import InstructivosTab from "./InstructivosTab";
+import PreguntasTab from "./PreguntasTab";
+import { rulesMap } from "../data/rules";
 
 const avatarMap = {};
 ownersData.forEach((o) => { avatarMap[o.nombre] = o.avatar; });
@@ -99,6 +102,19 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
   const [showLogForm, setShowLogForm] = useState(false);
   const [logFormExpansion, setLogFormExpansion] = useState(null);
   const [coverHovered, setCoverHovered] = useState(false);
+  const [activeTab, setActiveTab] = useState("detalle");
+
+  // Gather all booklets for this game + its expansions
+  const relatedGames = [game, ...(expansions || [])];
+  const relatedGameIds = relatedGames.map((g) => g.id);
+  const booklets = relatedGames.reduce((acc, g) => {
+    const r = rulesMap[g.id];
+    if (!r) return acc;
+    const entries = Array.isArray(r) ? r : [r];
+    entries.forEach((e) => { if (!acc.find((b) => b.pdf === e.pdf)) acc.push(e); });
+    return acc;
+  }, []);
+  const hasInstructivos = booklets.length > 0;
 
   const parent = game.parentId ? allGames.find((g) => g.id === game.parentId) : null;
   const victoryType = gameConfig?.victoryType || "absolute_winner";
@@ -191,128 +207,156 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
           />
         </div>
 
-        {/* RIGHT — Details + History */}
-        <div className="flex-1 border-l border-gray-100 p-6 sm:p-8 overflow-y-auto min-w-0">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-3 mb-5">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 leading-tight">{game.nombre}</h2>
-              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                {category && (
-                  <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full text-white ${categoryColors[category]}`}>{category}</span>
-                )}
-                <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">
-                  {VICTORY_LABELS[victoryType]}
-                </span>
-              </div>
-              {parent && (
-                <p className="text-xs text-gray-300 mt-2">Requiere <span className="text-orange-400 font-medium">{parent.nombre}</span></p>
-              )}
-            </div>
-            <div className="flex items-center gap-0.5 shrink-0">
-              {onEdit && (
-                <button onClick={onEdit} className="p-2 rounded-full hover:bg-gray-50 text-gray-300 hover:text-gray-500 transition-colors cursor-pointer">
-                  <Pencil size={15} />
-                </button>
-              )}
-              <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-50 text-gray-300 hover:text-gray-500 transition-colors cursor-pointer">
-                <X size={17} />
-              </button>
-            </div>
-          </div>
+        {/* RIGHT */}
+        <div className="flex-1 border-l border-gray-100 flex flex-col min-w-0">
 
-          {/* Meta — compact inline */}
-          <div className="flex items-center gap-5 text-sm text-gray-400 mb-4">
-            <span className="flex items-center gap-1.5">
-              <Users size={14} className="text-orange-400" />
-              <span className="text-gray-700 font-semibold">{game.jugadoresDisplay}</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock size={14} className="text-orange-400" />
-              <span className="text-gray-700 font-semibold">{game.duracion}</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Building2 size={14} className="text-orange-400" />
-              <span className="text-gray-500 text-xs">{game.developer}</span>
-            </span>
-          </div>
-
-          {/* Owners */}
-          <div className="flex items-center gap-2 mb-6">
-            <div className="flex items-center">
-              {game.owners.map((owner, i) => (
-                <div key={i} className="group/owner relative" style={{ marginLeft: i > 0 ? "-8px" : 0 }}>
-                  {avatarMap[owner] ? (
-                    <img src={avatarMap[owner]} alt={owner}
-                      className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm hover:z-10 hover:scale-110 transition-transform" loading="eager" width={36} height={36} decoding="async" />
-                  ) : (
-                    <span className="w-9 h-9 rounded-full bg-gray-200 text-xs font-bold flex items-center justify-center text-gray-400 border-2 border-white">{owner.charAt(0)}</span>
+          {/* Header — always visible */}
+          <div className="px-6 sm:px-8 pt-6 sm:pt-8 shrink-0">
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 leading-tight">{game.nombre}</h2>
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  {category && (
+                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full text-white ${categoryColors[category]}`}>{category}</span>
                   )}
-                  <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-gray-400 opacity-0 group-hover/owner:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">{owner}</span>
+                  <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">
+                    {VICTORY_LABELS[victoryType]}
+                  </span>
                 </div>
+                {parent && (
+                  <p className="text-xs text-gray-300 mt-2">Requiere <span className="text-orange-400 font-medium">{parent.nombre}</span></p>
+                )}
+              </div>
+              <div className="flex items-center gap-0.5 shrink-0">
+                {onEdit && (
+                  <button onClick={onEdit} className="p-2 rounded-full hover:bg-gray-50 text-gray-300 hover:text-gray-500 transition-colors cursor-pointer">
+                    <Pencil size={15} />
+                  </button>
+                )}
+                <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-50 text-gray-300 hover:text-gray-500 transition-colors cursor-pointer">
+                  <X size={17} />
+                </button>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-gray-100">
+              {["detalle", ...(hasInstructivos ? ["instructivos"] : []), "preguntas"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 text-xs font-medium capitalize transition-colors cursor-pointer border-b-2 -mb-px ${
+                    activeTab === tab
+                      ? "border-orange-400 text-orange-500"
+                      : "border-transparent text-gray-300 hover:text-gray-500"
+                  }`}
+                >
+                  {tab}
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="h-px bg-gray-100 mb-5" />
+          {/* Tab content */}
+          {activeTab === "instructivos" && hasInstructivos
+            ? <InstructivosTab booklets={booklets} noBorder />
+            : activeTab === "preguntas"
+            ? <PreguntasTab gameId={game.id} gameIds={relatedGameIds} booklets={booklets} />
+            : <div className="flex-1 overflow-y-auto px-6 sm:px-8 pb-6 sm:pb-8 pt-5">
 
-          {/* Session History */}
-          {game.tipo === "Juego Base" && (
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-xs font-semibold text-gray-900 flex items-center gap-1.5">
-                  <History size={13} className="text-gray-300" />
-                  Historial
-                  <span className="text-gray-300 font-normal">({sessions.length})</span>
-                </h4>
-                <button onClick={openLogBase}
-                  className="flex items-center gap-1 text-xs text-orange-500 hover:text-orange-600 cursor-pointer font-medium transition-colors">
-                  <Plus size={13} /> Registrar
-                </button>
-              </div>
-
-              {sessions.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-sm text-gray-300">Sin partidas registradas</p>
-                  <button onClick={openLogBase} className="text-xs text-orange-400 hover:text-orange-500 mt-2 cursor-pointer font-medium">
-                    Registrar la primera
-                  </button>
+                {/* Meta */}
+                <div className="flex items-center gap-5 text-sm text-gray-400 mb-4">
+                  <span className="flex items-center gap-1.5">
+                    <Users size={14} className="text-orange-400" />
+                    <span className="text-gray-700 font-semibold">{game.jugadoresDisplay}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Clock size={14} className="text-orange-400" />
+                    <span className="text-gray-700 font-semibold">{game.duracion}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Building2 size={14} className="text-orange-400" />
+                    <span className="text-gray-500 text-xs">{game.developer}</span>
+                  </span>
                 </div>
-              ) : (
-                <div className="space-y-0 max-h-80 overflow-y-auto pr-1">
-                  {sessions.slice(0, 15).map((s) => {
-                    const parts = participantsMap[s.id] || [];
-                    return (
-                      <div key={s.id} className="py-3 border-b border-gray-50 last:border-0">
-                        <div className="flex items-center gap-3 text-[11px] text-gray-300 mb-1.5">
-                          <span className="flex items-center gap-1"><Calendar size={10} /> {s.date}</span>
-                          {s.duration_minutes && <span className="flex items-center gap-1"><Clock size={10} /> {s.duration_minutes}m</span>}
-                        </div>
-                        {s.victory_type === "cooperative" && s.cooperative_win !== null && (
-                          <p className={`text-xs font-semibold mb-1.5 ${s.cooperative_win ? "text-emerald-500" : "text-red-400"}`}>
-                            {s.cooperative_win ? "🎉 Victoria" : "💀 Derrota"}
-                          </p>
+
+                {/* Owners */}
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="flex items-center">
+                    {game.owners.map((owner, i) => (
+                      <div key={i} className="group/owner relative" style={{ marginLeft: i > 0 ? "-8px" : 0 }}>
+                        {avatarMap[owner] ? (
+                          <img src={avatarMap[owner]} alt={owner}
+                            className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm hover:z-10 hover:scale-110 transition-transform" loading="eager" width={36} height={36} decoding="async" />
+                        ) : (
+                          <span className="w-9 h-9 rounded-full bg-gray-200 text-xs font-bold flex items-center justify-center text-gray-400 border-2 border-white">{owner.charAt(0)}</span>
                         )}
-                        {parts.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {parts.sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity)).map((p) => (
-                              <span key={p.id} className={`text-[11px] px-2 py-0.5 rounded-full ${
-                                p.is_winner ? "bg-amber-50 text-amber-600 font-medium" : "bg-gray-50 text-gray-400"
-                              }`}>
-                                {p.is_winner && "🏆 "}{p.player_name}{p.score !== null ? ` · ${p.score}` : ""}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        {s.notes && <p className="text-[10px] text-gray-300 italic mt-1.5">"{s.notes}"</p>}
+                        <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-gray-400 opacity-0 group-hover/owner:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">{owner}</span>
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+
+                <div className="h-px bg-gray-100 mb-5" />
+
+                {/* Session History */}
+                {game.tipo === "Juego Base" && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-xs font-semibold text-gray-900 flex items-center gap-1.5">
+                        <History size={13} className="text-gray-300" />
+                        Historial
+                        <span className="text-gray-300 font-normal">({sessions.length})</span>
+                      </h4>
+                      <button onClick={openLogBase}
+                        className="flex items-center gap-1 text-xs text-orange-500 hover:text-orange-600 cursor-pointer font-medium transition-colors">
+                        <Plus size={13} /> Registrar
+                      </button>
+                    </div>
+
+                    {sessions.length === 0 ? (
+                      <div className="text-center py-10">
+                        <p className="text-sm text-gray-300">Sin partidas registradas</p>
+                        <button onClick={openLogBase} className="text-xs text-orange-400 hover:text-orange-500 mt-2 cursor-pointer font-medium">
+                          Registrar la primera
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-0 max-h-80 overflow-y-auto pr-1">
+                        {sessions.slice(0, 15).map((s) => {
+                          const parts = participantsMap[s.id] || [];
+                          return (
+                            <div key={s.id} className="py-3 border-b border-gray-50 last:border-0">
+                              <div className="flex items-center gap-3 text-[11px] text-gray-300 mb-1.5">
+                                <span className="flex items-center gap-1"><Calendar size={10} /> {s.date}</span>
+                                {s.duration_minutes && <span className="flex items-center gap-1"><Clock size={10} /> {s.duration_minutes}m</span>}
+                              </div>
+                              {s.victory_type === "cooperative" && s.cooperative_win !== null && (
+                                <p className={`text-xs font-semibold mb-1.5 ${s.cooperative_win ? "text-emerald-500" : "text-red-400"}`}>
+                                  {s.cooperative_win ? "🎉 Victoria" : "💀 Derrota"}
+                                </p>
+                              )}
+                              {parts.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {parts.sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity)).map((p) => (
+                                    <span key={p.id} className={`text-[11px] px-2 py-0.5 rounded-full ${
+                                      p.is_winner ? "bg-amber-50 text-amber-600 font-medium" : "bg-gray-50 text-gray-400"
+                                    }`}>
+                                      {p.is_winner && "🏆 "}{p.player_name}{p.score !== null ? ` · ${p.score}` : ""}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              {s.notes && <p className="text-[10px] text-gray-300 italic mt-1.5">"{s.notes}"</p>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+          }
         </div>
       </div>
 

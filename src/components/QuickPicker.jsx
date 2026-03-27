@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { X, ArrowLeft, Dices, Users, Clock, RotateCcw } from "lucide-react";
 import { categoryMap, allCategories } from "../data/categories";
 import { playClick, playTick, playSuccess, playPop } from "../utils/sounds";
-import { loadRngDisabled } from "./SettingsPanel";
+import { loadRngDisabled } from "../utils/storage";
 
 const categoryColors = {
   "Party Game": { bg: "bg-pink-500", inactive: "bg-gray-200 text-gray-400" },
@@ -103,7 +103,11 @@ export default function QuickPicker({ games, onClose }) {
   const [playerCount, setPlayerCount] = useState(null);
   // All categories start active - deactivating removes them
   const [deactivated, setDeactivated] = useState(new Set());
-  const rngDisabled = loadRngDisabled();
+  const [rngDisabled, setRngDisabled] = useState(new Set());
+
+  useEffect(() => {
+    loadRngDisabled().then(setRngDisabled);
+  }, []);
   const [spinning, setSpinning] = useState(false);
   const [currentName, setCurrentName] = useState("");
   const [result, setResult] = useState(null);

@@ -68,8 +68,26 @@ export async function loadGameConfigs() {
   const { data, error } = await supabase.from("game_config").select("*");
   if (error) { console.error("Error loading game configs:", error); return {}; }
   const map = {};
-  data.forEach((c) => { map[c.game_id] = { victoryType: c.victory_type, teamMode: c.team_mode }; });
+  data.forEach((c) => { map[c.game_id] = { victoryType: c.victory_type, teamMode: c.team_mode, rngDisabled: c.rng_disabled }; });
   return map;
+}
+
+export async function loadRngDisabled() {
+  const { data, error } = await supabase.from("game_config").select("game_id").eq("rng_disabled", true);
+  if (error) { console.error("Error loading rng disabled:", error); return new Set(); }
+  return new Set(data.map((r) => r.game_id));
+}
+
+export async function saveRngDisabled(gameId, disabled) {
+  // Try update first (existing row)
+  const { data } = await supabase.from("game_config").update({ rng_disabled: disabled }).eq("game_id", gameId).select();
+  if (!data || data.length === 0) {
+    // No existing row — insert with defaults
+    const { error } = await supabase.from("game_config").insert({
+      game_id: gameId, victory_type: "absolute_winner", rng_disabled: disabled,
+    });
+    if (error) console.error("Error saving rng disabled:", error);
+  }
 }
 
 export async function saveGameConfig(gameId, victoryType, teamMode = null) {
@@ -128,6 +146,35 @@ export async function createGameSession(session, participants) {
 export async function deleteGameSession(sessionId) {
   const { error } = await supabase.from("game_sessions").delete().eq("id", sessionId);
   if (error) console.error("Error deleting session:", error);
+}
+
+// FAQ
+export async function loadGameFaq(gameId) {
+  const { data, error } = await supabase.from("game_faq").select("*").eq("game_id", gameId).order("created_at", { ascending: true });
+  if (error) { console.error("Error loading FAQ:", error); return []; }
+  return data;
+}
+
+export async function addFaqEntry(entry) {
+  const { data, error } = await supabase.from("game_faq").insert({
+    game_id: entry.gameId, question: entry.question, answer: entry.answer, is_house_rule: entry.isHouseRule || false,
+  }).select().single();
+  if (error) { console.error("Error adding FAQ:", error); return null; }
+  return data;
+}
+
+export async function deleteFaqEntry(id) {
+  const { error } = await supabase.from("game_faq").delete().eq("id", id);
+  if (error) console.error("Error deleting FAQ:", error);
+}
+
+export async function generateFaqAnswer(question, gameIds, bookletNames = null, houseRules = []) {
+  const { data, error } = await supabase.functions.invoke("generate-faq-answer", {
+    body: { question, game_ids: gameIds, booklet_names: bookletNames, house_rules: houseRules },
+  });
+  if (error) throw error;
+  if (data.error) throw new Error(data.error);
+  return data.answer;
 }
 
 export function parseDuration(duracion) {

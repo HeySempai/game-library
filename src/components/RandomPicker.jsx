@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { X, Dices, Users, Clock, RotateCcw, Route, Package, ArrowLeft } from "lucide-react";
 import { parseDuration } from "../utils/storage";
 import { categoryMap, allCategories } from "../data/categories";
-import { loadRngDisabled } from "./SettingsPanel";
+import { loadRngDisabled } from "../utils/storage";
 import { playClick, playTick, playSuccess, playPop } from "../utils/sounds";
 
 const categoryColors = {
@@ -184,7 +184,11 @@ export default function RandomPicker({ games, onClose }) {
   const [currentName, setCurrentName] = useState("");
   const [marathon, setMarathon] = useState(null);
   const spinIntervalRef = useRef(null);
-  const rngDisabled = useMemo(() => loadRngDisabled(), []);
+  const [rngDisabled, setRngDisabled] = useState(new Set());
+
+  useEffect(() => {
+    loadRngDisabled().then(setRngDisabled);
+  }, []);
 
   const activeCategories = useMemo(
     () => new Set(allCategories.filter((cat) => !deactivated.has(cat))),

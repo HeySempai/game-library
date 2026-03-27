@@ -1,4 +1,4 @@
-const S = "https://jcijqhcdsqonbitvyysh.supabase.co/storage/v1/object/public/covers";
+const S = "/covers";
 
 // Local cover images for all games
 export const imageMap = {
@@ -9,7 +9,7 @@ export const imageMap = {
   "con-base": `${S}/command-of-nature.jpg`,
   "sushi-go": `${S}/sushi-go-party.webp`,
   "mario": `${S}/mario-bros-power-up.webp`,
-  "exploding-kittens": `${S}/exploding-kittens.png`,
+  "exploding-kittens": `${S}/exploding-kittens.webp`,
   "virus": `${S}/virus.webp`,
   "wingspan-base": `${S}/wingspan.webp`,
   "flip7": `${S}/flip-7.webp`,
