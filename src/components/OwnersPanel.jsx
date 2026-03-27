@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Cake, MapPin, Star, Gamepad2, Trophy, List, LayoutGrid, RefreshCw, Plus, Search, Trash2 } from "lucide-react";
+import { loadGameSessions, loadSessionParticipants } from "../utils/storage";
 
 const RANDOM_TITLES = [
   "El Estratega Silencioso", "El Soñador Impulsivo", "El Táctico Implacable",
@@ -43,13 +44,28 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
   const [titles, setTitles] = useState(() => loadTitles(ownersData));
   const [showAddGame, setShowAddGame] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [winsByPlayer, setWinsByPlayer] = useState({});
+
+  // Load wins from game_sessions
+  useEffect(() => {
+    (async () => {
+      const sessions = await loadGameSessions();
+      if (!sessions.length) return;
+      const participantsMap = await loadSessionParticipants(sessions.map((s) => s.id));
+      const wins = {};
+      Object.values(participantsMap).flat().forEach((p) => {
+        if (p.is_winner) wins[p.player_name] = (wins[p.player_name] || 0) + 1;
+      });
+      setWinsByPlayer(wins);
+    })();
+  }, []);
 
   // Persist titles
   useEffect(() => { saveTitles(titles); }, [titles]);
 
   const getOwnerStats = (ownerName) => {
     const ownedGames = games.filter((g) => g.tipo === "Juego Base" && g.owners.includes(ownerName));
-    const wins = victories.filter((v) => v.winner === ownerName).length;
+    const wins = winsByPlayer[ownerName] || 0;
     return { gameCount: ownedGames.length, wins };
   };
 
@@ -205,7 +221,7 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
                 <p className="text-[10px] text-gray-400 uppercase tracking-wide">Juegos</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-amber-500">{victories.filter((v) => v.winner === owner.nombre).length}</p>
+                <p className="text-2xl font-bold text-amber-500">{winsByPlayer[owner.nombre] || 0}</p>
                 <p className="text-[10px] text-gray-400 uppercase tracking-wide">Victorias</p>
               </div>
             </div>
