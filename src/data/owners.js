@@ -1,4 +1,4 @@
-const A = "/avatars";
+const A = "https://vvwmxfizekmbpkmciyuw.supabase.co/storage/v1/object/public/avatars";
 
 export const ownersData = [
   {

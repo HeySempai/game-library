@@ -1,4 +1,4 @@
-const S = "/covers";
+const S = "https://vvwmxfizekmbpkmciyuw.supabase.co/storage/v1/object/public/covers";
 
 // Local cover images for all games
 export const imageMap = {
