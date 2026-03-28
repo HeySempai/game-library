@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { X, Plus, Trash2, Trophy, Save, Check, Package, Swords, Crown, UserPlus } from "lucide-react";
 import { ownersData } from "../data/owners";
 import { getEffectivePlayerRange } from "../utils/storage";
@@ -122,15 +122,15 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const effectiveMaxPlayers = activeFormat?.maxPlayers || maxPlayers;
 
   // Auto-switch format/victoryType based on player count
+  const playerCount = participants.filter((p) => p.playerName.trim()).length;
   useEffect(() => {
     if (!preset?.autoByPlayerCount) return;
-    const count = participants.filter((p) => p.playerName.trim()).length;
-    const auto = preset.autoByPlayerCount[count];
-    if (auto && auto.formatId !== selectedFormat) {
+    const auto = preset.autoByPlayerCount[playerCount];
+    if (auto) {
       setSelectedFormat(auto.formatId);
       setEffectiveVictoryType(auto.victoryType);
     }
-  }, [participants, preset, selectedFormat]);
+  }, [playerCount]);
 
   // Helper: assign team based on index and active teams
   const assignTeam = (index, teams, totalPlayers, presetObj) => {
