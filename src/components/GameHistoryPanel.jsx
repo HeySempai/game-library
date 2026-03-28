@@ -105,11 +105,13 @@ export default function GameHistoryPanel({ games, players, gameConfigs, onClose,
                           <span className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-500 text-[10px] font-semibold">
                             {VICTORY_LABELS[s.victory_type] || s.victory_type}
                           </span>
-                          {s.is_official === false && (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-600 text-[10px] font-semibold">
-                              Calentamiento
-                            </span>
-                          )}
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                            s.is_official !== false
+                              ? "bg-emerald-100 text-emerald-600"
+                              : "bg-amber-100 text-amber-600"
+                          }`}>
+                            {s.is_official !== false ? "Oficial" : "Calentamiento"}
+                          </span>
                         </div>
                       </div>
                       <button onClick={() => handleDeleteSession(s.id)} className="p-1.5 text-gray-300 hover:text-red-400 cursor-pointer">
