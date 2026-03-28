@@ -126,6 +126,7 @@ export async function createGameSession(session, participants) {
     victory_type: session.victoryType,
     cooperative_win: session.cooperativeWin ?? null,
     notes: session.notes || null,
+    is_official: session.isOfficial ?? true,
   }).select().single();
   if (error) { console.error("Error creating session:", error); return null; }
 

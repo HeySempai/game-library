@@ -14,7 +14,8 @@ export default function Leaderboard({ victories, games, players, onAddVictory, o
   // Load session-based stats
   useEffect(() => {
     const load = async () => {
-      const sessions = await loadGameSessions();
+      const allSessions = await loadGameSessions();
+      const sessions = allSessions.filter((s) => s.is_official !== false);
       if (sessions.length === 0) { setSessionStats({ playerWins: {}, gameStats: {} }); return; }
       const pm = await loadSessionParticipants(sessions.map((s) => s.id));
       const pw = {};

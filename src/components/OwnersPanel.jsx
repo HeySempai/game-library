@@ -46,12 +46,14 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
   const [searchQuery, setSearchQuery] = useState("");
   const [winsByPlayer, setWinsByPlayer] = useState({});
 
-  // Load wins from game_sessions
+  // Load wins from official game_sessions only
   useEffect(() => {
     (async () => {
       const sessions = await loadGameSessions();
       if (!sessions.length) return;
-      const participantsMap = await loadSessionParticipants(sessions.map((s) => s.id));
+      const officialIds = sessions.filter((s) => s.is_official !== false).map((s) => s.id);
+      if (!officialIds.length) return;
+      const participantsMap = await loadSessionParticipants(officialIds);
       const wins = {};
       Object.values(participantsMap).flat().forEach((p) => {
         if (p.is_winner) wins[p.player_name] = (wins[p.player_name] || 0) + 1;

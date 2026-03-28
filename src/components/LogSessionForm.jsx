@@ -77,6 +77,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const [durationMinutes, setDurationMinutes] = useState("");
   const [notes, setNotes] = useState("");
   const [cooperativeWin, setCooperativeWin] = useState(null);
+  const [isOfficial, setIsOfficial] = useState(true);
 
   // Expansions
   const expansions = useMemo(() =>
@@ -352,6 +353,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
         victoryType,
         cooperativeWin: victoryType === "cooperative" ? cooperativeWin : null,
         notes: notes.trim() || null,
+        isOfficial: isOfficial,
       },
       participants: finalParticipants.map((p) => ({
         playerName: p.playerName,
@@ -374,19 +376,29 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-5">
-          {/* Victory type badge */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-600 uppercase tracking-wide">
-              {VICTORY_LABELS[victoryType] || victoryType}
-            </span>
-            {teamMode && (
-              <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-sky-100 text-sky-600 uppercase tracking-wide">
-                {teamMode === "random_teams" ? "Equipos random" : teamMode === "one_vs_all" ? "1 vs Todos" : "Equipos fijos"}
+          {/* Victory type badge + official toggle */}
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-600 uppercase tracking-wide">
+                {VICTORY_LABELS[victoryType] || victoryType}
               </span>
-            )}
-            <span className="text-[10px] font-medium text-gray-400">
-              Máx {effectiveMaxPlayers} jugadores
-            </span>
+              {teamMode && (
+                <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-sky-100 text-sky-600 uppercase tracking-wide">
+                  {teamMode === "random_teams" ? "Equipos random" : teamMode === "one_vs_all" ? "1 vs Todos" : "Equipos fijos"}
+                </span>
+              )}
+              <span className="text-[10px] font-medium text-gray-400">
+                Máx {effectiveMaxPlayers} jugadores
+              </span>
+            </div>
+            <button type="button" onClick={() => setIsOfficial(!isOfficial)}
+              className={`text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide transition-colors cursor-pointer ${
+                isOfficial
+                  ? "bg-emerald-100 text-emerald-600"
+                  : "bg-gray-100 text-gray-400"
+              }`}>
+              {isOfficial ? "Oficial" : "Calentamiento"}
+            </button>
           </div>
 
           {/* Expansions picker */}
