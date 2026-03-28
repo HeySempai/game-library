@@ -121,17 +121,6 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const activeTeams = activeFormat?.teams || preset?.teams || null;
   const effectiveMaxPlayers = activeFormat?.maxPlayers || maxPlayers;
 
-  // Auto-switch format/victoryType based on player count
-  const playerCount = participants.filter((p) => p.playerName.trim()).length;
-  useEffect(() => {
-    if (!preset?.autoByPlayerCount) return;
-    const auto = preset.autoByPlayerCount[playerCount];
-    if (auto) {
-      setSelectedFormat(auto.formatId);
-      setEffectiveVictoryType(auto.victoryType);
-    }
-  }, [playerCount]);
-
   // Helper: assign team based on index and active teams
   const assignTeam = (index, teams, totalPlayers, presetObj) => {
     if (!teams || teams.length === 0) return "";
@@ -183,6 +172,17 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     }));
   }, []);
   const [participants, setParticipants] = useState(initialPlayers);
+
+  // Auto-switch format/victoryType based on player count
+  const playerCount = participants.filter((p) => p.playerName.trim()).length;
+  useEffect(() => {
+    if (!preset?.autoByPlayerCount) return;
+    const auto = preset.autoByPlayerCount[playerCount];
+    if (auto) {
+      setSelectedFormat(auto.formatId);
+      setEffectiveVictoryType(auto.victoryType);
+    }
+  }, [playerCount]);
 
   // When format changes, reset participants to fit new max and teams
   const handleFormatChange = (formatId) => {
