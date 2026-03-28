@@ -70,6 +70,22 @@ const TEAM_PRESETS = {
       { name: "Saboteador", color: "bg-gray-700", textColor: "text-white" },
     ],
   },
+  santorini: {
+    label: "Modo",
+    autoByPlayerCount: {
+      2: { formatId: "individual", victoryType: "absolute_winner" },
+      3: { formatId: "individual", victoryType: "absolute_winner" },
+      4: { formatId: "2v2", victoryType: "team_winner" },
+    },
+    formats: [
+      { id: "individual", name: "Individual", maxPlayers: 3, teams: null },
+      { id: "2v2", name: "2 vs 2", maxPlayers: 4, teams: [
+        { name: "Equipo 1", color: "bg-sky-500", textColor: "text-white" },
+        { name: "Equipo 2", color: "bg-rose-500", textColor: "text-white" },
+      ]},
+    ],
+    requireAllTeams: true,
+  },
 };
 
 export default function LogSessionForm({ game, victoryType, teamMode, players, allGames, onSave, onClose }) {
@@ -99,10 +115,22 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   // Team preset
   const preset = TEAM_PRESETS[game.id] || null;
   const [selectedFormat, setSelectedFormat] = useState(preset?.formats?.[0]?.id || null);
+  const [effectiveVictoryType, setEffectiveVictoryType] = useState(victoryType);
 
   const activeFormat = preset?.formats?.find((f) => f.id === selectedFormat) || null;
   const activeTeams = activeFormat?.teams || preset?.teams || null;
   const effectiveMaxPlayers = activeFormat?.maxPlayers || maxPlayers;
+
+  // Auto-switch format/victoryType based on player count
+  useEffect(() => {
+    if (!preset?.autoByPlayerCount) return;
+    const count = participants.filter((p) => p.playerName.trim()).length;
+    const auto = preset.autoByPlayerCount[count];
+    if (auto && auto.formatId !== selectedFormat) {
+      setSelectedFormat(auto.formatId);
+      setEffectiveVictoryType(auto.victoryType);
+    }
+  }, [participants, preset, selectedFormat]);
 
   // Helper: assign team based on index and active teams
   const assignTeam = (index, teams, totalPlayers, presetObj) => {
@@ -159,6 +187,11 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   // When format changes, reset participants to fit new max and teams
   const handleFormatChange = (formatId) => {
     setSelectedFormat(formatId);
+    // Update victoryType if autoByPlayerCount defines it for this format
+    if (preset?.autoByPlayerCount) {
+      const auto = Object.values(preset.autoByPlayerCount).find((a) => a.formatId === formatId);
+      if (auto) setEffectiveVictoryType(auto.victoryType);
+    }
     const fmt = preset?.formats?.find((f) => f.id === formatId);
     const newMax = fmt?.maxPlayers || maxPlayers;
     const newTeams = fmt?.teams || null;
@@ -169,7 +202,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     })));
   };
 
-  const isScoreBased = victoryType === "score_descending" || victoryType === "score_ascending";
+  const isScoreBased = effectiveVictoryType === "score_descending" || effectiveVictoryType === "score_ascending";
 
   // Team validation for presets
   const teamValidation = useMemo(() => {
@@ -239,18 +272,18 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     }
 
     // Players required (except no_winner)
-    if (victoryType !== "no_winner" && validParticipants.length === 0) {
+    if (effectiveVictoryType !== "no_winner" && validParticipants.length === 0) {
       errors.push("Agrega al menos un jugador");
     }
 
     // Winner required for absolute_winner and team_winner
-    if (victoryType === "absolute_winner" || victoryType === "team_winner") {
+    if (effectiveVictoryType === "absolute_winner" || effectiveVictoryType === "team_winner") {
       const hasWinner = validParticipants.some((p) => p.isWinner);
       if (!hasWinner) errors.push("Selecciona un ganador");
     }
 
     // Cooperative must have result
-    if (victoryType === "cooperative" && cooperativeWin === null) {
+    if (effectiveVictoryType === "cooperative" && cooperativeWin === null) {
       errors.push("Selecciona victoria o derrota");
     }
 
@@ -261,7 +294,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     }
 
     return { valid: errors.length === 0, errors };
-  }, [participants, durationMinutes, victoryType, cooperativeWin, isScoreBased]);
+  }, [participants, durationMinutes, effectiveVictoryType, cooperativeWin, isScoreBased]);
 
   // Already-selected player names
   const usedNames = participants.map((p) => p.playerName).filter(Boolean);
@@ -302,7 +335,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   };
 
   const selectWinner = (i) => {
-    if (victoryType === "team_winner" && activeTeams) {
+    if (effectiveVictoryType === "team_winner" && activeTeams) {
       // Toggle winner for entire team
       const clickedTeam = participants[i].team;
       const newWinState = !participants[i].isWinner;
@@ -310,7 +343,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
         ...p,
         isWinner: p.team === clickedTeam ? newWinState : false,
       })));
-    } else if (victoryType === "team_winner") {
+    } else if (effectiveVictoryType === "team_winner") {
       updateParticipant(i, "isWinner", !participants[i].isWinner);
     } else {
       setParticipants(participants.map((p, idx) => ({ ...p, isWinner: idx === i })));
@@ -326,7 +359,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const handleSubmit = (e) => {
     e.preventDefault();
     const validParticipants = participants.filter((p) => p.playerName.trim());
-    if (validParticipants.length === 0 && victoryType !== "no_winner") return;
+    if (validParticipants.length === 0 && effectiveVictoryType !== "no_winner") return;
 
     let finalParticipants = validParticipants.map((p) => ({
       ...p,
@@ -336,7 +369,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     if (isScoreBased) {
       const scored = finalParticipants.filter((p) => p.score !== null);
       if (scored.length > 0) {
-        const best = victoryType === "score_descending"
+        const best = effectiveVictoryType === "score_descending"
           ? Math.max(...scored.map((p) => p.score))
           : Math.min(...scored.map((p) => p.score));
         finalParticipants = finalParticipants.map((p) => ({
@@ -350,15 +383,15 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
         gameId: game.id,
         date,
         durationMinutes: durationMinutes ? parseInt(durationMinutes) : null,
-        victoryType,
-        cooperativeWin: victoryType === "cooperative" ? cooperativeWin : null,
+        victoryType: effectiveVictoryType,
+        cooperativeWin: effectiveVictoryType === "cooperative" ? cooperativeWin : null,
         notes: notes.trim() || null,
         isOfficial: isOfficial,
       },
       participants: finalParticipants.map((p) => ({
         playerName: p.playerName,
         score: p.score,
-        isWinner: victoryType === "cooperative" ? (cooperativeWin || false) : p.isWinner,
+        isWinner: effectiveVictoryType === "cooperative" ? (cooperativeWin || false) : p.isWinner,
         team: p.team || null,
       })),
     });
@@ -380,7 +413,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-600 uppercase tracking-wide">
-                {VICTORY_LABELS[victoryType] || victoryType}
+                {VICTORY_LABELS[effectiveVictoryType] || effectiveVictoryType}
               </span>
               {teamMode && (
                 <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-sky-100 text-sky-600 uppercase tracking-wide">
@@ -458,7 +491,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
           </div>
 
           {/* Cooperative: win/loss toggle */}
-          {victoryType === "cooperative" && (
+          {effectiveVictoryType === "cooperative" && (
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-2">Resultado</label>
               <div className="flex gap-2">
@@ -475,7 +508,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
           )}
 
           {/* Player avatar grid — toggle on/off */}
-          {victoryType !== "no_winner" && (
+          {effectiveVictoryType !== "no_winner" && (
             <div>
               <label className="text-xs font-medium text-gray-500 mb-3 block">
                 Jugadores ({participants.filter((p) => p.playerName).length}/{effectiveMaxPlayers})
@@ -554,7 +587,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                         )}
 
                         {/* Team selector — only show when teams exist */}
-                        {victoryType === "team_winner" && activeTeams && (
+                        {effectiveVictoryType === "team_winner" && activeTeams && (
                           <div className="flex gap-1.5">
                             {activeTeams.map((t) => {
                               const countInTeam = participants.filter((pp) => pp.playerName && pp.team === t.name).length;
@@ -593,13 +626,13 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                           </div>
                         )}
 
-                        {victoryType === "team_winner" && !activeTeams && !activeFormat && (
+                        {effectiveVictoryType === "team_winner" && !activeTeams && !activeFormat && (
                           <input type="text" value={p.team} onChange={(e) => updateParticipant(i, "team", e.target.value)}
                             placeholder="Equipo"
                             className="w-24 bg-white border border-gray-200 rounded-lg px-2 py-2.5 text-sm text-gray-700 focus:border-orange-400 focus:outline-none" />
                         )}
 
-                        {(victoryType === "absolute_winner" || victoryType === "team_winner") && (
+                        {(effectiveVictoryType === "absolute_winner" || effectiveVictoryType === "team_winner") && (
                           <button type="button" onClick={() => selectWinner(i)}
                             className={`p-2.5 rounded-xl transition-colors cursor-pointer ${
                               p.isWinner ? "bg-amber-100 text-amber-500" : "bg-gray-200 text-gray-300 hover:text-gray-400"
@@ -641,7 +674,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
           )}
 
           {/* No winner info */}
-          {victoryType === "no_winner" && (
+          {effectiveVictoryType === "no_winner" && (
             <div className="bg-gray-50 rounded-xl p-4 text-center">
               <p className="text-sm text-gray-500">🎉 Este juego es solo por diversión, no hay ganador.</p>
             </div>
