@@ -6,7 +6,10 @@ export default function Leaderboard({ victories, games, players, onAddVictory, o
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedGame, setSelectedGame] = useState("");
   const [selectedWinner, setSelectedWinner] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
   const [sessionStats, setSessionStats] = useState({ playerWins: {}, gameStats: {} });
 
   const baseGames = games.filter((g) => g.tipo === "Juego Base");

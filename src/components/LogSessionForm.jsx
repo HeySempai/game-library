@@ -88,7 +88,10 @@ const TEAM_PRESETS = {
 };
 
 export default function LogSessionForm({ game, victoryType, teamMode, players, allGames, onSave, onClose }) {
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
   const [durationMinutes, setDurationMinutes] = useState("");
   const [notes, setNotes] = useState("");
   const [cooperativeWin, setCooperativeWin] = useState(null);
