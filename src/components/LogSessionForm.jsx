@@ -20,10 +20,10 @@ const TEAM_PRESETS = {
   samurai: {
     label: "Facciones",
     teams: [
-      { name: "Ronin", color: "bg-red-500", textColor: "text-white", max: 1, icon: "Swords" },
-      { name: "Shogun", color: "bg-amber-400", textColor: "text-amber-900", max: 1, icon: "Crown" },
-      { name: "Samurai", color: "bg-amber-400", textColor: "text-amber-900", icon: "Kabuto" },
-      { name: "Ninja", color: "bg-blue-500", textColor: "text-white", icon: "Shuriken" },
+      { name: "Ronin", color: "bg-red-500", textColor: "text-white", max: 1, icon: "Swords", alliance: "ronin" },
+      { name: "Shogun", color: "bg-amber-400", textColor: "text-amber-900", max: 1, icon: "Crown", alliance: "shogun" },
+      { name: "Samurai", color: "bg-amber-400", textColor: "text-amber-900", icon: "Kabuto", alliance: "shogun" },
+      { name: "Ninja", color: "bg-blue-500", textColor: "text-white", icon: "Shuriken", alliance: "ninja" },
     ],
     // Distribution per player count: [Ronin, Shogun, Samurai, Ninja]
     distribution: {
@@ -327,12 +327,18 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
 
   const selectWinner = (i) => {
     if (effectiveVictoryType === "team_winner" && activeTeams) {
-      // Toggle winner for entire team
+      // Toggle winner for entire team (or alliance if defined)
       const clickedTeam = participants[i].team;
+      const preset = activeTeams;
+      const clickedDef = preset.teams.find((t) => t.name === clickedTeam);
+      const clickedAlliance = clickedDef?.alliance;
       const newWinState = !participants[i].isWinner;
+      const alliedTeams = clickedAlliance
+        ? new Set(preset.teams.filter((t) => t.alliance === clickedAlliance).map((t) => t.name))
+        : new Set([clickedTeam]);
       setParticipants(participants.map((p) => ({
         ...p,
-        isWinner: p.team === clickedTeam ? newWinState : false,
+        isWinner: alliedTeams.has(p.team) ? newWinState : false,
       })));
     } else if (effectiveVictoryType === "team_winner") {
       updateParticipant(i, "isWinner", !participants[i].isWinner);
