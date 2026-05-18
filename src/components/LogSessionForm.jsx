@@ -178,10 +178,13 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   // When format changes, reset participants to fit new max and teams
   const handleFormatChange = (formatId) => {
     setSelectedFormat(formatId);
-    // Update victoryType if autoByPlayerCount defines it for this format
+    // Update victoryType based on format teams or autoByPlayerCount
     if (preset?.autoByPlayerCount) {
       const auto = Object.values(preset.autoByPlayerCount).find((a) => a.formatId === formatId);
       if (auto) setEffectiveVictoryType(auto.victoryType);
+    } else {
+      const fmt = preset?.formats?.find((f) => f.id === formatId);
+      setEffectiveVictoryType(fmt?.teams ? "team_winner" : "absolute_winner");
     }
     const fmt = preset?.formats?.find((f) => f.id === formatId);
     const newMax = fmt?.maxPlayers || maxPlayers;
@@ -329,12 +332,11 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     if (effectiveVictoryType === "team_winner" && activeTeams) {
       // Toggle winner for entire team (or alliance if defined)
       const clickedTeam = participants[i].team;
-      const preset = activeTeams;
-      const clickedDef = preset.teams.find((t) => t.name === clickedTeam);
+      const clickedDef = activeTeams.find((t) => t.name === clickedTeam);
       const clickedAlliance = clickedDef?.alliance;
       const newWinState = !participants[i].isWinner;
       const alliedTeams = clickedAlliance
-        ? new Set(preset.teams.filter((t) => t.alliance === clickedAlliance).map((t) => t.name))
+        ? new Set(activeTeams.filter((t) => t.alliance === clickedAlliance).map((t) => t.name))
         : new Set([clickedTeam]);
       setParticipants(participants.map((p) => ({
         ...p,
