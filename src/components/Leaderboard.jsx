@@ -39,15 +39,9 @@ export default function Leaderboard({ victories, games, players, onAddVictory, o
     load();
   }, []);
 
-  // Merge legacy victories + new session stats
+  // Player wins from sessions
   const playerWins = {};
   players.forEach((p) => (playerWins[p] = 0));
-  // Legacy victories
-  victories.forEach((v) => {
-    if (!playerWins[v.winner]) playerWins[v.winner] = 0;
-    playerWins[v.winner]++;
-  });
-  // Session-based wins
   Object.entries(sessionStats.playerWins).forEach(([name, count]) => {
     if (!playerWins[name]) playerWins[name] = 0;
     playerWins[name] += count;
@@ -55,19 +49,8 @@ export default function Leaderboard({ victories, games, players, onAddVictory, o
 
   const sorted = Object.entries(playerWins).sort((a, b) => b[1] - a[1]);
 
-  // Merge game stats
-  const gameStats = {};
-  victories.forEach((v) => {
-    if (!gameStats[v.gameId]) gameStats[v.gameId] = {};
-    if (!gameStats[v.gameId][v.winner]) gameStats[v.gameId][v.winner] = 0;
-    gameStats[v.gameId][v.winner]++;
-  });
-  Object.entries(sessionStats.gameStats).forEach(([gameId, winners]) => {
-    if (!gameStats[gameId]) gameStats[gameId] = {};
-    Object.entries(winners).forEach(([name, count]) => {
-      gameStats[gameId][name] = (gameStats[gameId][name] || 0) + count;
-    });
-  });
+  // Game stats from sessions
+  const gameStats = { ...sessionStats.gameStats };
 
   const handleAddVictory = (e) => {
     e.preventDefault();
