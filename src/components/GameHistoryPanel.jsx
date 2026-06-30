@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { X, Plus, Trophy, Clock, Users, Calendar, Trash2, History } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { X, Plus, Trophy, Clock, Users, Calendar, Trash2, History, ChevronDown, ChevronRight } from "lucide-react";
 import { loadGameSessions, loadSessionParticipants, deleteGameSession } from "../utils/storage";
 import LogSessionForm from "./LogSessionForm";
 
@@ -19,8 +19,28 @@ export default function GameHistoryPanel({ games, players, gameConfigs, onClose,
   const [showLogForm, setShowLogForm] = useState(false);
   const [logGame, setLogGame] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [collapsedDates, setCollapsedDates] = useState({});
 
   const baseGames = games.filter((g) => g.tipo === "Juego Base");
+
+  const sessionsByDate = useMemo(() => {
+    const groups = {};
+    sessions.forEach((s) => {
+      if (!groups[s.date]) groups[s.date] = [];
+      groups[s.date].push(s);
+    });
+    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
+  }, [sessions]);
+
+  const toggleDate = (date) => {
+    setCollapsedDates((prev) => ({ ...prev, [date]: !prev[date] }));
+  };
+
+  const formatDate = (dateStr) => {
+    const [y, m, d] = dateStr.split("-");
+    const date = new Date(y, m - 1, d);
+    return date.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -89,60 +109,76 @@ export default function GameHistoryPanel({ games, players, gameConfigs, onClose,
           ) : sessions.length === 0 ? (
             <p className="text-center text-gray-400 py-8">No hay partidas registradas{filterGameId ? " para este juego" : ""}.</p>
           ) : (
-            <div className="space-y-3">
-              {sessions.map((s) => {
-                const parts = participantsMap[s.id] || [];
-                const winners = parts.filter((p) => p.is_winner);
-                const game = games.find((g) => g.id === s.game_id);
+            <div className="space-y-4">
+              {sessionsByDate.map(([date, dateSessions]) => {
+                const isCollapsed = collapsedDates[date];
                 return (
-                  <div key={s.id} className="bg-gray-50 rounded-xl p-4 space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{game?.nombre || s.game_id}</p>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                          <span className="flex items-center gap-1"><Calendar size={11} /> {s.date}</span>
-                          {s.duration_minutes && <span className="flex items-center gap-1"><Clock size={11} /> {s.duration_minutes} min</span>}
-                          <span className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-500 text-[10px] font-semibold">
-                            {VICTORY_LABELS[s.victory_type] || s.victory_type}
-                          </span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                            s.is_official !== false
-                              ? "bg-emerald-100 text-emerald-600"
-                              : "bg-amber-100 text-amber-600"
-                          }`}>
-                            {s.is_official !== false ? "Oficial" : "Calentamiento"}
-                          </span>
-                        </div>
+                  <div key={date}>
+                    <button onClick={() => toggleDate(date)}
+                      className="w-full flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group">
+                      {isCollapsed ? <ChevronRight size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
+                      <span className="text-sm font-semibold text-gray-700 capitalize">{formatDate(date)}</span>
+                      <span className="text-xs text-gray-400">{dateSessions.length} partida{dateSessions.length > 1 ? "s" : ""}</span>
+                    </button>
+
+                    {!isCollapsed && (
+                      <div className="space-y-3 mt-2 ml-5">
+                        {dateSessions.map((s) => {
+                          const parts = participantsMap[s.id] || [];
+                          const game = games.find((g) => g.id === s.game_id);
+                          return (
+                            <div key={s.id} className="bg-gray-50 rounded-xl p-4 space-y-2">
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <p className="text-sm font-semibold text-gray-900">{game?.nombre || s.game_id}</p>
+                                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                                    {s.duration_minutes && <span className="flex items-center gap-1"><Clock size={11} /> {s.duration_minutes} min</span>}
+                                    <span className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-500 text-[10px] font-semibold">
+                                      {VICTORY_LABELS[s.victory_type] || s.victory_type}
+                                    </span>
+                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                      s.is_official !== false
+                                        ? "bg-emerald-100 text-emerald-600"
+                                        : "bg-amber-100 text-amber-600"
+                                    }`}>
+                                      {s.is_official !== false ? "Oficial" : "Calentamiento"}
+                                    </span>
+                                  </div>
+                                </div>
+                                <button onClick={() => handleDeleteSession(s.id)} className="p-1.5 text-gray-300 hover:text-red-400 cursor-pointer">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+
+                              {/* Cooperative result */}
+                              {s.victory_type === "cooperative" && s.cooperative_win !== null && (
+                                <p className={`text-xs font-semibold ${s.cooperative_win ? "text-emerald-500" : "text-red-500"}`}>
+                                  {s.cooperative_win ? "🎉 Victoria cooperativa" : "💀 Derrota"}
+                                </p>
+                              )}
+
+                              {/* Participants */}
+                              {parts.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {parts.sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity)).map((p) => (
+                                    <span key={p.id} className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
+                                      p.is_winner ? "bg-amber-100 text-amber-700 font-semibold" : "bg-gray-200 text-gray-600"
+                                    }`}>
+                                      {p.is_winner && <Trophy size={10} />}
+                                      {p.player_name}
+                                      {p.score !== null && <span className="font-bold ml-0.5">{p.score}</span>}
+                                      {p.team && <span className="text-[10px] opacity-60">({p.team})</span>}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+
+                              {s.notes && <p className="text-xs text-gray-400 italic">"{s.notes}"</p>}
+                            </div>
+                          );
+                        })}
                       </div>
-                      <button onClick={() => handleDeleteSession(s.id)} className="p-1.5 text-gray-300 hover:text-red-400 cursor-pointer">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-
-                    {/* Cooperative result */}
-                    {s.victory_type === "cooperative" && s.cooperative_win !== null && (
-                      <p className={`text-xs font-semibold ${s.cooperative_win ? "text-emerald-500" : "text-red-500"}`}>
-                        {s.cooperative_win ? "🎉 Victoria cooperativa" : "💀 Derrota"}
-                      </p>
                     )}
-
-                    {/* Participants */}
-                    {parts.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {parts.sort((a, b) => (b.score ?? -Infinity) - (a.score ?? -Infinity)).map((p) => (
-                          <span key={p.id} className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
-                            p.is_winner ? "bg-amber-100 text-amber-700 font-semibold" : "bg-gray-200 text-gray-600"
-                          }`}>
-                            {p.is_winner && <Trophy size={10} />}
-                            {p.player_name}
-                            {p.score !== null && <span className="font-bold ml-0.5">{p.score}</span>}
-                            {p.team && <span className="text-[10px] opacity-60">({p.team})</span>}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {s.notes && <p className="text-xs text-gray-400 italic">"{s.notes}"</p>}
                   </div>
                 );
               })}
