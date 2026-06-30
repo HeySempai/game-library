@@ -2,7 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 const GAMES_KEY = "boardgamehub_games";
 const PLAYERS_KEY = "boardgamehub_players";
-const CATEGORIES_KEY = "boardgamehub_categories";
 
 export function loadGames() {
   const stored = localStorage.getItem(GAMES_KEY);
@@ -13,20 +12,6 @@ export function saveGames(games) {
   localStorage.setItem(GAMES_KEY, JSON.stringify(games));
 }
 
-export function loadCustomCategories() {
-  const stored = localStorage.getItem(CATEGORIES_KEY);
-  return stored ? JSON.parse(stored) : {};
-}
-
-export function saveCustomCategory(gameId, category) {
-  const custom = loadCustomCategories();
-  if (category) {
-    custom[gameId] = category;
-  } else {
-    delete custom[gameId];
-  }
-  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(custom));
-}
 
 // Victories now use the database
 export async function loadVictories() {
@@ -84,7 +69,7 @@ export async function loadGameConfigs() {
   const { data, error } = await supabase.from("game_config").select("*");
   if (error) { console.error("Error loading game configs:", error); return {}; }
   const map = {};
-  data.forEach((c) => { map[c.game_id] = { victoryType: c.victory_type, teamMode: c.team_mode, rngDisabled: c.rng_disabled }; });
+  data.forEach((c) => { map[c.game_id] = { victoryType: c.victory_type, teamMode: c.team_mode, rngDisabled: c.rng_disabled, category: c.category }; });
   return map;
 }
 
@@ -104,6 +89,13 @@ export async function saveRngDisabled(gameId, disabled) {
     });
     if (error) console.error("Error saving rng disabled:", error);
   }
+}
+
+export async function saveCategory(gameId, category) {
+  const { error } = await supabase.from("game_config").upsert({
+    game_id: gameId, category: category || null,
+  }, { onConflict: "game_id" });
+  if (error) console.error("Error saving category:", error);
 }
 
 export async function saveGameConfig(gameId, victoryType, teamMode = null) {

@@ -31,8 +31,7 @@ import {
   savePlayers,
   parseDuration,
   loadGameConfigs,
-  loadCustomCategories,
-  saveCustomCategory,
+  saveCategory,
 } from "./utils/storage";
 import GameCard from "./components/GameCard";
 import GameDetail from "./components/GameDetail";
@@ -99,16 +98,16 @@ function App() {
   useEffect(() => saveGames(games), [games]);
   useEffect(() => savePlayers(players), [players]);
 
-  // Merge custom categories into categoryMap on mount
-  useEffect(() => {
-    const custom = loadCustomCategories();
-    Object.entries(custom).forEach(([id, cat]) => { categoryMap[id] = cat; });
-  }, []);
-
   // Load victories and game configs from DB on mount
   useEffect(() => {
     loadVictories().then((v) => setVictories(v));
-    loadGameConfigs().then((c) => setGameConfigs(c));
+    loadGameConfigs().then((c) => {
+      setGameConfigs(c);
+      // Merge DB categories into categoryMap
+      Object.entries(c).forEach(([id, cfg]) => {
+        if (cfg.category) categoryMap[id] = cfg.category;
+      });
+    });
   }, []);
 
   useEffect(() => {
@@ -226,7 +225,7 @@ function App() {
     } else {
       delete categoryMap[gameId];
     }
-    saveCustomCategory(gameId, category || null);
+    saveCategory(gameId, category || null);
     if (selectedGame?.id === gameId) {
       setSelectedGame((prev) => ({ ...prev, nombre: nombre || prev.nombre, owners, ...(imageUrl !== undefined ? { imageUrl } : {}) }));
     }
