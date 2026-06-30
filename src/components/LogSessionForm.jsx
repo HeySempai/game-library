@@ -348,7 +348,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     } else if (effectiveVictoryType === "team_winner") {
       updateParticipant(i, "isWinner", !participants[i].isWinner);
     } else {
-      setParticipants(participants.map((p, idx) => ({ ...p, isWinner: idx === i })));
+      setParticipants(participants.map((p, idx) => ({ ...p, isWinner: idx === i ? !p.isWinner : p.isWinner })));
     }
   };
 
