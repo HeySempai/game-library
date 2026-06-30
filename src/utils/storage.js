@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const GAMES_KEY = "boardgamehub_games";
 const PLAYERS_KEY = "boardgamehub_players";
+const CATEGORIES_KEY = "boardgamehub_categories";
 
 export function loadGames() {
   const stored = localStorage.getItem(GAMES_KEY);
@@ -10,6 +11,21 @@ export function loadGames() {
 
 export function saveGames(games) {
   localStorage.setItem(GAMES_KEY, JSON.stringify(games));
+}
+
+export function loadCustomCategories() {
+  const stored = localStorage.getItem(CATEGORIES_KEY);
+  return stored ? JSON.parse(stored) : {};
+}
+
+export function saveCustomCategory(gameId, category) {
+  const custom = loadCustomCategories();
+  if (category) {
+    custom[gameId] = category;
+  } else {
+    delete custom[gameId];
+  }
+  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(custom));
 }
 
 // Victories now use the database
