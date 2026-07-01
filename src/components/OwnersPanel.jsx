@@ -31,24 +31,35 @@ function getRandomTitle(currentTitle) {
 export default function OwnersPanel({ ownersData, games, victories, players, onClose, onAddGame, onRemoveOwnerFromGame }) {
   const [selectedOwner, setSelectedOwner] = useState(null);
   const [collectionView, setCollectionView] = useState("list");
+  const [activeTab, setActiveTab] = useState("games");
   const [titles, setTitles] = useState(() => getDefaultTitles(ownersData));
   const [showAddGame, setShowAddGame] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [winsByPlayer, setWinsByPlayer] = useState({});
+  const [winDetails, setWinDetails] = useState([]);
 
   // Load wins and titles from Supabase
   useEffect(() => {
     (async () => {
       const sessions = await loadGameSessions();
       if (sessions.length) {
-        const officialIds = sessions.filter((s) => s.is_official !== false).map((s) => s.id);
+        const officialSessions = sessions.filter((s) => s.is_official !== false);
+        const officialIds = officialSessions.map((s) => s.id);
         if (officialIds.length) {
           const participantsMap = await loadSessionParticipants(officialIds);
           const wins = {};
-          Object.values(participantsMap).flat().forEach((p) => {
-            if (p.is_winner) wins[p.player_name] = (wins[p.player_name] || 0) + 1;
+          const details = [];
+          officialSessions.forEach((s) => {
+            const parts = participantsMap[s.id] || [];
+            parts.forEach((p) => {
+              if (p.is_winner) {
+                wins[p.player_name] = (wins[p.player_name] || 0) + 1;
+                details.push({ playerName: p.player_name, gameId: s.game_id, date: s.date, score: p.score });
+              }
+            });
           });
           setWinsByPlayer(wins);
+          setWinDetails(details);
         }
       }
       const dbTitles = await loadOwnerTitles();
@@ -213,15 +224,65 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-5">
-              <div className="bg-gray-50 rounded-xl p-3 text-center">
+              <button onClick={() => setActiveTab("games")}
+                className={`rounded-xl p-3 text-center cursor-pointer transition-colors border-2 ${
+                  activeTab === "games" ? "border-orange-400 bg-orange-50" : "border-transparent bg-gray-50 hover:bg-gray-100"
+                }`}>
                 <p className="text-2xl font-bold text-orange-500">{ownerGames.length}</p>
                 <p className="text-[10px] text-gray-400 uppercase tracking-wide">Juegos</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3 text-center">
+              </button>
+              <button onClick={() => setActiveTab("wins")}
+                className={`rounded-xl p-3 text-center cursor-pointer transition-colors border-2 ${
+                  activeTab === "wins" ? "border-amber-400 bg-amber-50" : "border-transparent bg-gray-50 hover:bg-gray-100"
+                }`}>
                 <p className="text-2xl font-bold text-amber-500">{winsByPlayer[owner.nombre] || 0}</p>
                 <p className="text-[10px] text-gray-400 uppercase tracking-wide">Victorias</p>
-              </div>
+              </button>
             </div>
+
+            {activeTab === "wins" ? (() => {
+              const ownerWins = winDetails.filter((w) => w.playerName === owner.nombre);
+              // Group by game
+              const byGame = {};
+              ownerWins.forEach((w) => {
+                if (!byGame[w.gameId]) byGame[w.gameId] = [];
+                byGame[w.gameId].push(w);
+              });
+              const gameEntries = Object.entries(byGame).sort((a, b) => b[1].length - a[1].length);
+              return (
+                <div>
+                  <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Victorias por juego</h4>
+                  {gameEntries.length === 0 ? (
+                    <p className="text-sm text-gray-300 text-center py-8">Sin victorias registradas</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {gameEntries.map(([gameId, wins]) => {
+                        const g = games.find((x) => x.id === gameId);
+                        return (
+                          <div key={gameId} className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
+                            {g?.imageUrl ? (
+                              <img src={g.imageUrl} alt={g?.nombre} className="w-8 h-10 rounded object-contain shrink-0" />
+                            ) : (
+                              <div className="w-8 h-10 rounded bg-gray-200 flex items-center justify-center shrink-0 text-xs">🎲</div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">{g?.nombre || gameId}</p>
+                              <p className="text-xs text-gray-400">
+                                {wins.map((w) => w.date).sort().reverse().slice(0, 3).join(", ")}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1 bg-amber-100 text-amber-600 px-2.5 py-1 rounded-full">
+                              <Trophy size={12} />
+                              <span className="text-sm font-bold">{wins.length}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })() : <>
 
             <button
               onClick={() => setShowAddGame(true)}
@@ -299,6 +360,7 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
                 ))}
               </div>
             )}
+            </>}
           </div>
         )}
       </div>
