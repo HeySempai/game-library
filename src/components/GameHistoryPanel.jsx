@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { X, Plus, Trophy, Clock, Users, Calendar, Trash2, History, ChevronDown, ChevronRight } from "lucide-react";
-import { loadGameSessions, loadSessionParticipants, deleteGameSession } from "../utils/storage";
+import { X, Plus, Trophy, Clock, Users, Calendar, Trash2, History, ChevronDown, ChevronRight, Pencil } from "lucide-react";
+import { loadGameSessions, loadSessionParticipants, deleteGameSession, updateGameSession } from "../utils/storage";
 import LogSessionForm from "./LogSessionForm";
 
 const VICTORY_LABELS = {
@@ -18,6 +18,8 @@ export default function GameHistoryPanel({ games, players, gameConfigs, onClose,
   const [filterGameId, setFilterGameId] = useState(initialGameId || "");
   const [showLogForm, setShowLogForm] = useState(false);
   const [logGame, setLogGame] = useState(null);
+  const [editingSession, setEditingSession] = useState(null);
+  const [editingParticipants, setEditingParticipants] = useState(null);
   const [loading, setLoading] = useState(true);
   const [collapsedDates, setCollapsedDates] = useState({});
 
@@ -60,6 +62,15 @@ export default function GameHistoryPanel({ games, players, gameConfigs, onClose,
   const handleLogSession = (gameId) => {
     const game = games.find((g) => g.id === gameId);
     if (game) { setLogGame(game); setShowLogForm(true); }
+  };
+
+  const handleEditSession = (session) => {
+    const game = games.find((g) => g.id === session.game_id);
+    if (!game) return;
+    setLogGame(game);
+    setEditingSession(session);
+    setEditingParticipants(participantsMap[session.id] || []);
+    setShowLogForm(true);
   };
 
   const handleDeleteSession = async (id) => {
@@ -145,9 +156,14 @@ export default function GameHistoryPanel({ games, players, gameConfigs, onClose,
                                     </span>
                                   </div>
                                 </div>
-                                <button onClick={() => handleDeleteSession(s.id)} className="p-1.5 text-gray-300 hover:text-red-400 cursor-pointer">
-                                  <Trash2 size={14} />
-                                </button>
+                                <div className="flex gap-1">
+                                  <button onClick={() => handleEditSession(s)} className="p-1.5 text-gray-300 hover:text-orange-400 cursor-pointer">
+                                    <Pencil size={14} />
+                                  </button>
+                                  <button onClick={() => handleDeleteSession(s.id)} className="p-1.5 text-gray-300 hover:text-red-400 cursor-pointer">
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
                               </div>
 
                               {/* Cooperative result */}
@@ -194,14 +210,22 @@ export default function GameHistoryPanel({ games, players, gameConfigs, onClose,
           teamMode={gameConfigs[logGame.id]?.teamMode || null}
           players={players}
           allGames={games}
+          editSession={editingSession}
+          editParticipants={editingParticipants}
           onSave={async ({ session, participants }) => {
-            const { createGameSession } = await import("../utils/storage");
-            await createGameSession(session, participants);
+            if (editingSession) {
+              await updateGameSession(editingSession.id, session, participants);
+            } else {
+              const { createGameSession } = await import("../utils/storage");
+              await createGameSession(session, participants);
+            }
             setShowLogForm(false);
             setLogGame(null);
+            setEditingSession(null);
+            setEditingParticipants(null);
             loadData();
           }}
-          onClose={() => { setShowLogForm(false); setLogGame(null); }}
+          onClose={() => { setShowLogForm(false); setLogGame(null); setEditingSession(null); setEditingParticipants(null); }}
         />
       )}
     </div>

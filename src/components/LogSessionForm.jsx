@@ -91,17 +91,23 @@ const LEVEL_GAMES = {
   "the-mind": { maxByPlayers: { 2: 12, 3: 10, 4: 8 }, defaultMax: 12, label: "Level" },
 };
 
-export default function LogSessionForm({ game, victoryType, teamMode, players, allGames, onSave, onClose }) {
+export default function LogSessionForm({ game, victoryType, teamMode, players, allGames, onSave, onClose, editSession, editParticipants }) {
+  const isEdit = !!editSession;
   const [date, setDate] = useState(() => {
+    if (editSession) return editSession.date;
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   });
-  const [durationMinutes, setDurationMinutes] = useState("");
-  const [notes, setNotes] = useState("");
-  const [cooperativeWin, setCooperativeWin] = useState(null);
-  const [isOfficial, setIsOfficial] = useState(true);
-  const [level, setLevel] = useState(null);
+  const [durationMinutes, setDurationMinutes] = useState(editSession?.duration_minutes?.toString() || "");
+  const [notes, setNotes] = useState(editSession?.notes || "");
+  const [cooperativeWin, setCooperativeWin] = useState(editSession?.cooperative_win ?? null);
+  const [isOfficial, setIsOfficial] = useState(editSession?.is_official ?? true);
   const levelConfig = LEVEL_GAMES[game.id] || null;
+  const [level, setLevel] = useState(() => {
+    if (!levelConfig || !editParticipants?.length) return null;
+    const s = editParticipants[0]?.score;
+    return s !== null && s !== undefined ? s : null;
+  });
 
   // Expansions
   const expansions = useMemo(() =>
@@ -168,10 +174,17 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     return teams[teamIdx].name;
   };
 
-  // Participants — preload all 6 players (up to max)
+  // Participants — preload from edit data or all 6 players
   const initialPlayers = useMemo(() => {
+    if (editParticipants?.length) {
+      return editParticipants.map((p) => ({
+        playerName: p.player_name,
+        score: p.score !== null && p.score !== undefined ? p.score.toString() : "",
+        isWinner: p.is_winner || false,
+        team: p.team || "",
+      }));
+    }
     const fmt = preset?.formats?.[0];
-    const teams = fmt?.teams || preset?.teams || null;
     const max = fmt?.maxPlayers || maxPlayers;
     const count = Math.min(players.length, max);
     return players.slice(0, count).map((p, idx) => ({
@@ -421,7 +434,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Registrar Partida</h2>
+            <h2 className="text-lg font-bold text-gray-900">{isEdit ? "Editar Partida" : "Registrar Partida"}</h2>
             <p className="text-sm text-gray-400">{game.nombre}</p>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 cursor-pointer"><X size={20} /></button>
@@ -748,7 +761,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                     ? "bg-orange-500 hover:bg-orange-400 text-white cursor-pointer"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}>
-                <Save size={18} /> Registrar Partida
+                <Save size={18} /> {isEdit ? "Guardar Cambios" : "Registrar Partida"}
               </button>
             );
           })()}

@@ -200,6 +200,32 @@ export async function createGameSession(session, participants) {
   return data;
 }
 
+export async function updateGameSession(sessionId, session, participants) {
+  const { error } = await supabase.from("game_sessions").update({
+    date: session.date,
+    duration_minutes: session.durationMinutes || null,
+    victory_type: session.victoryType,
+    cooperative_win: session.cooperativeWin ?? null,
+    notes: session.notes || null,
+    is_official: session.isOfficial ?? true,
+  }).eq("id", sessionId);
+  if (error) { console.error("Error updating session:", error); return; }
+
+  // Replace participants: delete old, insert new
+  await supabase.from("session_participants").delete().eq("session_id", sessionId);
+  if (participants.length > 0) {
+    const rows = participants.map((p) => ({
+      session_id: sessionId,
+      player_name: p.playerName,
+      score: p.score ?? null,
+      is_winner: p.isWinner || false,
+      team: p.team || null,
+    }));
+    const { error: pErr } = await supabase.from("session_participants").insert(rows);
+    if (pErr) console.error("Error updating participants:", pErr);
+  }
+}
+
 export async function deleteGameSession(sessionId) {
   const { error } = await supabase.from("game_sessions").delete().eq("id", sessionId);
   if (error) console.error("Error deleting session:", error);
