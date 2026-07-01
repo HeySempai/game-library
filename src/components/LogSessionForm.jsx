@@ -87,6 +87,10 @@ const TEAM_PRESETS = {
   },
 };
 
+const LEVEL_GAMES = {
+  "the-mind": { maxByPlayers: { 2: 12, 3: 10, 4: 8 }, defaultMax: 12, label: "Level" },
+};
+
 export default function LogSessionForm({ game, victoryType, teamMode, players, allGames, onSave, onClose }) {
   const [date, setDate] = useState(() => {
     const d = new Date();
@@ -96,6 +100,8 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
   const [notes, setNotes] = useState("");
   const [cooperativeWin, setCooperativeWin] = useState(null);
   const [isOfficial, setIsOfficial] = useState(true);
+  const [level, setLevel] = useState(null);
+  const levelConfig = LEVEL_GAMES[game.id] || null;
 
   // Expansions
   const expansions = useMemo(() =>
@@ -280,8 +286,13 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     }
 
     // Cooperative must have result
-    if (effectiveVictoryType === "cooperative" && cooperativeWin === null) {
+    if (effectiveVictoryType === "cooperative" && !levelConfig && cooperativeWin === null) {
       errors.push("Selecciona victoria o derrota");
+    }
+
+    // Level-based games must have level selected
+    if (levelConfig && level === null) {
+      errors.push("Selecciona el nivel alcanzado");
     }
 
     // Score-based: at least one score required
@@ -380,20 +391,26 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
       }
     }
 
+    // Level-based cooperative games
+    const playerCount = finalParticipants.length;
+    const maxLevel = levelConfig ? (levelConfig.maxByPlayers[playerCount] || levelConfig.defaultMax) : null;
+    const isLevelWin = levelConfig ? level === maxLevel : null;
+    const finalCoopWin = levelConfig ? isLevelWin : cooperativeWin;
+
     onSave({
       session: {
         gameId: game.id,
         date,
         durationMinutes: durationMinutes ? parseInt(durationMinutes) : null,
         victoryType: effectiveVictoryType,
-        cooperativeWin: effectiveVictoryType === "cooperative" ? cooperativeWin : null,
+        cooperativeWin: effectiveVictoryType === "cooperative" ? finalCoopWin : null,
         notes: notes.trim() || null,
         isOfficial: isOfficial,
       },
       participants: finalParticipants.map((p) => ({
         playerName: p.playerName,
-        score: p.score,
-        isWinner: effectiveVictoryType === "cooperative" ? (cooperativeWin || false) : p.isWinner,
+        score: levelConfig ? level : p.score,
+        isWinner: effectiveVictoryType === "cooperative" ? (finalCoopWin || false) : p.isWinner,
         team: p.team || null,
       })),
     });
@@ -492,8 +509,8 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
             </div>
           </div>
 
-          {/* Cooperative: win/loss toggle */}
-          {effectiveVictoryType === "cooperative" && (
+          {/* Cooperative: win/loss toggle (non-level games) */}
+          {effectiveVictoryType === "cooperative" && !levelConfig && (
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-2">Resultado</label>
               <div className="flex gap-2">
@@ -508,6 +525,39 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
               </div>
             </div>
           )}
+
+          {/* Level selector for level-based games */}
+          {levelConfig && (() => {
+            const playerCount = participants.filter((p) => p.playerName.trim()).length;
+            const maxLevel = levelConfig.maxByPlayers[playerCount] || levelConfig.defaultMax;
+            return (
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-2">
+                  {levelConfig.label} alcanzado {level !== null && <span className="text-orange-500 font-bold">— {level}/{maxLevel}</span>}
+                  {level !== null && level === maxLevel && <span className="text-emerald-500 ml-1">🎉 Victoria!</span>}
+                </label>
+                <div className="grid grid-cols-6 gap-2">
+                  {Array.from({ length: levelConfig.defaultMax }, (_, i) => i + 1).map((lvl) => {
+                    const disabled = lvl > maxLevel;
+                    const selected = level === lvl;
+                    const reached = level !== null && lvl <= level;
+                    return (
+                      <button key={lvl} type="button" disabled={disabled}
+                        onClick={() => setLevel(lvl === level ? null : lvl)}
+                        className={`py-2.5 rounded-lg text-sm font-bold transition-colors ${
+                          disabled ? "bg-gray-50 text-gray-200 cursor-not-allowed"
+                          : selected ? "bg-orange-500 text-white cursor-pointer"
+                          : reached ? "bg-orange-100 text-orange-600 cursor-pointer"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200 cursor-pointer"
+                        }`}>
+                        {lvl}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Player avatar grid — toggle on/off */}
           {effectiveVictoryType !== "no_winner" && (
