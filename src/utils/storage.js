@@ -1,17 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-
-const GAMES_KEY = "boardgamehub_games";
-const PLAYERS_KEY = "boardgamehub_players";
-
-export function loadGames() {
-  const stored = localStorage.getItem(GAMES_KEY);
-  return stored ? JSON.parse(stored) : null;
-}
-
-export function saveGames(games) {
-  localStorage.setItem(GAMES_KEY, JSON.stringify(games));
-}
-
+import { ownersData } from "../data/owners";
 
 // Victories now use the database
 export async function loadVictories() {
@@ -48,20 +36,15 @@ export async function addVictory(victory) {
   return { id: data.id, gameId: data.game_id, winner: data.winner, date: data.date };
 }
 
-export function loadPlayers() {
-  const stored = localStorage.getItem(PLAYERS_KEY);
-  return stored ? JSON.parse(stored) : [
-    "Ernesto Aguirre",
-    "Dante Cabrera",
-    "Christian Garcia",
-    "Javier Yuriar",
-    "Kevin Guerrero",
-    "Adrian Garza",
-  ];
-}
-
-export function savePlayers(players) {
-  localStorage.setItem(PLAYERS_KEY, JSON.stringify(players));
+export async function loadPlayers() {
+  const ownerNames = ownersData.map((o) => o.nombre);
+  const { data, error } = await supabase
+    .from("session_participants")
+    .select("player_name");
+  if (error) { console.error("Error loading players:", error); return ownerNames; }
+  const allNames = new Set(ownerNames);
+  data.forEach((p) => allNames.add(p.player_name));
+  return [...allNames];
 }
 
 // Game Config
@@ -69,7 +52,25 @@ export async function loadGameConfigs() {
   const { data, error } = await supabase.from("game_config").select("*");
   if (error) { console.error("Error loading game configs:", error); return {}; }
   const map = {};
-  data.forEach((c) => { map[c.game_id] = { victoryType: c.victory_type, teamMode: c.team_mode, rngDisabled: c.rng_disabled, category: c.category }; });
+  data.forEach((c) => {
+    map[c.game_id] = {
+      victoryType: c.victory_type,
+      teamMode: c.team_mode,
+      rngDisabled: c.rng_disabled,
+      category: c.category,
+      owners: c.owners,
+      customNombre: c.custom_nombre,
+      imageUrl: c.image_url,
+      isCustom: c.is_custom,
+      tipo: c.tipo,
+      duracion: c.duracion,
+      minJugadores: c.min_jugadores,
+      maxJugadores: c.max_jugadores,
+      jugadoresDisplay: c.jugadores_display,
+      developer: c.developer,
+      parentId: c.parent_id,
+    };
+  });
   return map;
 }
 
@@ -96,6 +97,53 @@ export async function saveCategory(gameId, category) {
     game_id: gameId, category: category || null,
   }, { onConflict: "game_id" });
   if (error) console.error("Error saving category:", error);
+}
+
+// Game overrides (owners, name, image for hardcoded games)
+export async function saveGameOverride(gameId, { owners, nombre, imageUrl }) {
+  const updates = {};
+  if (owners !== undefined) updates.owners = owners;
+  if (nombre !== undefined) updates.custom_nombre = nombre || null;
+  if (imageUrl !== undefined) updates.image_url = imageUrl || null;
+  const { error } = await supabase.from("game_config").upsert({
+    game_id: gameId, ...updates,
+  }, { onConflict: "game_id" });
+  if (error) console.error("Error saving game override:", error);
+}
+
+// Custom games (user-created, not in hardcoded catalog)
+export async function saveCustomGame(game) {
+  const { error } = await supabase.from("game_config").upsert({
+    game_id: game.id,
+    is_custom: true,
+    custom_nombre: game.nombre,
+    tipo: game.tipo,
+    duracion: game.duracion || null,
+    min_jugadores: game.minJugadores || null,
+    max_jugadores: game.maxJugadores || null,
+    jugadores_display: game.jugadoresDisplay || null,
+    developer: game.developer || null,
+    parent_id: game.parentId || null,
+    owners: game.owners || [],
+    image_url: game.imageUrl || null,
+  }, { onConflict: "game_id" });
+  if (error) console.error("Error saving custom game:", error);
+}
+
+// Owner titles
+export async function loadOwnerTitles() {
+  const { data, error } = await supabase.from("owner_config").select("*");
+  if (error) { console.error("Error loading owner titles:", error); return {}; }
+  const map = {};
+  data.forEach((o) => { map[o.owner_id] = o.title; });
+  return map;
+}
+
+export async function saveOwnerTitle(ownerId, title) {
+  const { error } = await supabase.from("owner_config").upsert({
+    owner_id: ownerId, title,
+  }, { onConflict: "owner_id" });
+  if (error) console.error("Error saving owner title:", error);
 }
 
 export async function saveGameConfig(gameId, victoryType, teamMode = null) {

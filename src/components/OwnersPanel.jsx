@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Cake, MapPin, Star, Gamepad2, Trophy, List, LayoutGrid, RefreshCw, Plus, Search, Trash2 } from "lucide-react";
-import { loadGameSessions, loadSessionParticipants } from "../utils/storage";
+import { loadGameSessions, loadSessionParticipants, loadOwnerTitles, saveOwnerTitle } from "../utils/storage";
 
 const RANDOM_TITLES = [
   "El Estratega Silencioso", "El Soñador Impulsivo", "El Táctico Implacable",
@@ -17,20 +17,10 @@ const RANDOM_TITLES = [
   "El Vikingo de Cartón", "El Hechicero del Meeple", "El Barón del VP",
 ];
 
-const TITLES_KEY = "owner-titles";
-
-function loadTitles(ownersData) {
-  try {
-    const saved = JSON.parse(localStorage.getItem(TITLES_KEY));
-    if (saved && typeof saved === "object") return saved;
-  } catch {}
+function getDefaultTitles(ownersData) {
   const map = {};
   ownersData.forEach((o) => { map[o.id] = o.titulo; });
   return map;
-}
-
-function saveTitles(titles) {
-  localStorage.setItem(TITLES_KEY, JSON.stringify(titles));
 }
 
 function getRandomTitle(currentTitle) {
@@ -41,29 +31,32 @@ function getRandomTitle(currentTitle) {
 export default function OwnersPanel({ ownersData, games, victories, players, onClose, onAddGame, onRemoveOwnerFromGame }) {
   const [selectedOwner, setSelectedOwner] = useState(null);
   const [collectionView, setCollectionView] = useState("list");
-  const [titles, setTitles] = useState(() => loadTitles(ownersData));
+  const [titles, setTitles] = useState(() => getDefaultTitles(ownersData));
   const [showAddGame, setShowAddGame] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [winsByPlayer, setWinsByPlayer] = useState({});
 
-  // Load wins from official game_sessions only
+  // Load wins and titles from Supabase
   useEffect(() => {
     (async () => {
       const sessions = await loadGameSessions();
-      if (!sessions.length) return;
-      const officialIds = sessions.filter((s) => s.is_official !== false).map((s) => s.id);
-      if (!officialIds.length) return;
-      const participantsMap = await loadSessionParticipants(officialIds);
-      const wins = {};
-      Object.values(participantsMap).flat().forEach((p) => {
-        if (p.is_winner) wins[p.player_name] = (wins[p.player_name] || 0) + 1;
-      });
-      setWinsByPlayer(wins);
+      if (sessions.length) {
+        const officialIds = sessions.filter((s) => s.is_official !== false).map((s) => s.id);
+        if (officialIds.length) {
+          const participantsMap = await loadSessionParticipants(officialIds);
+          const wins = {};
+          Object.values(participantsMap).flat().forEach((p) => {
+            if (p.is_winner) wins[p.player_name] = (wins[p.player_name] || 0) + 1;
+          });
+          setWinsByPlayer(wins);
+        }
+      }
+      const dbTitles = await loadOwnerTitles();
+      if (Object.keys(dbTitles).length > 0) {
+        setTitles((prev) => ({ ...prev, ...dbTitles }));
+      }
     })();
   }, []);
-
-  // Persist titles
-  useEffect(() => { saveTitles(titles); }, [titles]);
 
   const getOwnerStats = (ownerName) => {
     const ownedGames = games.filter((g) => g.tipo === "Juego Base" && g.owners.includes(ownerName));
@@ -72,7 +65,9 @@ export default function OwnersPanel({ ownersData, games, victories, players, onC
   };
 
   const refreshTitle = (ownerId) => {
-    setTitles((prev) => ({ ...prev, [ownerId]: getRandomTitle(prev[ownerId]) }));
+    const newTitle = getRandomTitle(titles[ownerId]);
+    setTitles((prev) => ({ ...prev, [ownerId]: newTitle }));
+    saveOwnerTitle(ownerId, newTitle);
   };
 
   const owner = selectedOwner ? ownersData.find((o) => o.id === selectedOwner) : null;

@@ -23,15 +23,14 @@ import { imageMap } from "./data/images";
 import { categoryMap, allCategories } from "./data/categories";
 import { ownersData } from "./data/owners";
 import {
-  loadGames,
-  saveGames,
   loadVictories,
   addVictory,
   loadPlayers,
-  savePlayers,
   parseDuration,
   loadGameConfigs,
   saveCategory,
+  saveGameOverride,
+  saveCustomGame,
 } from "./utils/storage";
 import GameCard from "./components/GameCard";
 import GameDetail from "./components/GameDetail";
@@ -46,34 +45,10 @@ import SettingsPanel from "./components/SettingsPanel";
 import GameHistoryPanel from "./components/GameHistoryPanel";
 
 function App() {
-  const [games, setGames] = useState(() => {
-    const stored = loadGames();
-    if (!stored) return initialGames;
-
-    const storedById = new Map(stored.map((g) => [g.id, g]));
-    const canonicalIds = new Set(initialGames.map((g) => g.id));
-
-    // Keep canonical catalog data (players, duration, ids, etc.)
-    // and only preserve user-editable fields from local storage.
-    const mergedCatalog = initialGames.map((canonical) => {
-      const cached = storedById.get(canonical.id);
-      return {
-        ...canonical,
-        owners: cached?.owners || canonical.owners,
-        imageUrl: imageMap[canonical.id] || cached?.imageUrl || canonical.imageUrl || "",
-      };
-    });
-
-    // Preserve custom user-created games that don't exist in the canonical catalog.
-    const customGames = stored
-      .filter((g) => !canonicalIds.has(g.id))
-      .map((g) => ({ ...g, imageUrl: g.imageUrl || "" }));
-
-    return [...mergedCatalog, ...customGames];
-  });
+  const [games, setGames] = useState(initialGames);
   const [victories, setVictories] = useState([]);
   const [gameConfigs, setGameConfigs] = useState({});
-  const [players, setPlayers] = useState(() => loadPlayers());
+  const [players, setPlayers] = useState(() => ownersData.map((o) => o.nombre));
 
   const [selectedGame, setSelectedGame] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -95,17 +70,48 @@ function App() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  useEffect(() => saveGames(games), [games]);
-  useEffect(() => savePlayers(players), [players]);
-
-  // Load victories and game configs from DB on mount
+  // Load all data from Supabase on mount
   useEffect(() => {
     loadVictories().then((v) => setVictories(v));
-    loadGameConfigs().then((c) => {
-      setGameConfigs(c);
-      // Merge DB categories into categoryMap
-      Object.entries(c).forEach(([id, cfg]) => {
+    loadPlayers().then((p) => setPlayers(p));
+    loadGameConfigs().then((configs) => {
+      setGameConfigs(configs);
+      // Merge DB data into games
+      const customGames = [];
+      Object.entries(configs).forEach(([id, cfg]) => {
         if (cfg.category) categoryMap[id] = cfg.category;
+        if (cfg.isCustom && cfg.customNombre) {
+          customGames.push({
+            id,
+            tipo: cfg.tipo || "Juego Base",
+            nombre: cfg.customNombre,
+            duracion: cfg.duracion || "",
+            minJugadores: cfg.minJugadores,
+            maxJugadores: cfg.maxJugadores,
+            jugadoresDisplay: cfg.jugadoresDisplay || "",
+            developer: cfg.developer || "",
+            owners: cfg.owners || [],
+            parentId: cfg.parentId || null,
+            imageUrl: cfg.imageUrl || imageMap[id] || "",
+          });
+        }
+      });
+      setGames((prev) => {
+        // Merge overrides into hardcoded games
+        const merged = prev.map((g) => {
+          const cfg = configs[g.id];
+          if (!cfg) return g;
+          return {
+            ...g,
+            owners: cfg.owners || g.owners,
+            nombre: cfg.customNombre || g.nombre,
+            imageUrl: cfg.imageUrl || imageMap[g.id] || g.imageUrl || "",
+          };
+        });
+        // Add custom games not in hardcoded catalog
+        const existingIds = new Set(merged.map((g) => g.id));
+        const newCustom = customGames.filter((g) => !existingIds.has(g.id));
+        return [...merged, ...newCustom];
       });
     });
   }, []);
@@ -215,6 +221,7 @@ function App() {
     newGame.owners.forEach((owner) => {
       if (!players.includes(owner)) setPlayers((prev) => [...prev, owner]);
     });
+    saveCustomGame(newGame);
   };
   const handleEditGame = (gameId, { nombre, owners, category, imageUrl }) => {
     setGames((prev) =>
@@ -226,6 +233,7 @@ function App() {
       delete categoryMap[gameId];
     }
     saveCategory(gameId, category || null);
+    saveGameOverride(gameId, { owners, nombre, imageUrl });
     if (selectedGame?.id === gameId) {
       setSelectedGame((prev) => ({ ...prev, nombre: nombre || prev.nombre, owners, ...(imageUrl !== undefined ? { imageUrl } : {}) }));
     }
