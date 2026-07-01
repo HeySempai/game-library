@@ -101,6 +101,8 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
   const [participantsMap, setParticipantsMap] = useState({});
   const [showLogForm, setShowLogForm] = useState(false);
   const [logFormExpansion, setLogFormExpansion] = useState(null);
+  const [editingSession, setEditingSession] = useState(null);
+  const [editingParticipants, setEditingParticipants] = useState(null);
   const [coverHovered, setCoverHovered] = useState(false);
   const [activeTab, setActiveTab] = useState("detalle");
 
@@ -131,11 +133,25 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
     load();
   }, [game.id]);
 
+  const handleEditSession = (session) => {
+    setEditingSession(session);
+    setEditingParticipants(participantsMap[session.id] || []);
+    setLogFormExpansion(null);
+    setShowLogForm(true);
+  };
+
   const handleSessionSaved = async ({ session, participants }) => {
-    const { createGameSession } = await import("../utils/storage");
-    await createGameSession(session, participants);
+    if (editingSession) {
+      const { updateGameSession } = await import("../utils/storage");
+      await updateGameSession(editingSession.id, session, participants);
+    } else {
+      const { createGameSession } = await import("../utils/storage");
+      await createGameSession(session, participants);
+    }
     setShowLogForm(false);
     setLogFormExpansion(null);
+    setEditingSession(null);
+    setEditingParticipants(null);
     const s = await loadGameSessions(game.id);
     setSessions(s);
     if (s.length > 0) {
@@ -326,10 +342,16 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
                         {sessions.slice(0, 15).map((s) => {
                           const parts = participantsMap[s.id] || [];
                           return (
-                            <div key={s.id} className="py-3 border-b border-gray-50 last:border-0">
-                              <div className="flex items-center gap-3 text-[11px] text-gray-300 mb-1.5">
-                                <span className="flex items-center gap-1"><Calendar size={10} /> {s.date}</span>
-                                {s.duration_minutes && <span className="flex items-center gap-1"><Clock size={10} /> {s.duration_minutes}m</span>}
+                            <div key={s.id} className="py-3 border-b border-gray-50 last:border-0 group/session">
+                              <div className="flex items-center justify-between mb-1.5">
+                                <div className="flex items-center gap-3 text-[11px] text-gray-300">
+                                  <span className="flex items-center gap-1"><Calendar size={10} /> {s.date}</span>
+                                  {s.duration_minutes && <span className="flex items-center gap-1"><Clock size={10} /> {s.duration_minutes}m</span>}
+                                </div>
+                                <button onClick={() => handleEditSession(s)}
+                                  className="p-1 text-gray-200 hover:text-orange-400 opacity-0 group-hover/session:opacity-100 transition-opacity cursor-pointer">
+                                  <Pencil size={12} />
+                                </button>
                               </div>
                               {s.victory_type === "cooperative" && s.cooperative_win !== null && (
                                 <p className={`text-xs font-semibold mb-1.5 ${s.cooperative_win ? "text-emerald-500" : "text-red-400"}`}>
@@ -367,8 +389,10 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
           teamMode={gameConfig?.teamMode || null}
           players={players || []}
           allGames={allGames}
+          editSession={editingSession}
+          editParticipants={editingParticipants}
           onSave={handleSessionSaved}
-          onClose={() => { setShowLogForm(false); setLogFormExpansion(null); }}
+          onClose={() => { setShowLogForm(false); setLogFormExpansion(null); setEditingSession(null); setEditingParticipants(null); }}
           selectedExpansion={logFormExpansion}
         />
       )}

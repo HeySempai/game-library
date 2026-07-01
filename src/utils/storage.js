@@ -105,10 +105,15 @@ export async function saveGameOverride(gameId, { owners, nombre, imageUrl }) {
   if (owners !== undefined) updates.owners = owners;
   if (nombre !== undefined) updates.custom_nombre = nombre || null;
   if (imageUrl !== undefined) updates.image_url = imageUrl || null;
-  const { error } = await supabase.from("game_config").upsert({
-    game_id: gameId, ...updates,
-  }, { onConflict: "game_id" });
-  if (error) console.error("Error saving game override:", error);
+  // Try update first to avoid NOT NULL violation on upsert
+  const { data } = await supabase.from("game_config").update(updates).eq("game_id", gameId).select();
+  if (!data || data.length === 0) {
+    // No existing row — insert with defaults
+    const { error } = await supabase.from("game_config").insert({
+      game_id: gameId, victory_type: "absolute_winner", ...updates,
+    });
+    if (error) console.error("Error saving game override:", error);
+  }
 }
 
 // Custom games (user-created, not in hardcoded catalog)
