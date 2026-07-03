@@ -17,6 +17,7 @@ import {
   Settings,
   Eye,
   History,
+  ListOrdered,
 } from "lucide-react";
 import { initialGames } from "./data/games";
 import { imageMap } from "./data/images";
@@ -43,6 +44,7 @@ import DiceRoller from "./components/DiceRoller";
 import EditGameForm from "./components/EditGameForm";
 import SettingsPanel from "./components/SettingsPanel";
 import GameHistoryPanel from "./components/GameHistoryPanel";
+import GameTracker from "./components/GameTracker";
 
 function App() {
   const [games, setGames] = useState(initialGames);
@@ -61,6 +63,7 @@ function App() {
   const [editingGame, setEditingGame] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showTracker, setShowTracker] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOwner, setFilterOwner] = useState("all");
   const [filterCategories, setFilterCategories] = useState(new Set());
@@ -201,6 +204,7 @@ function App() {
         else if (showOwners) setShowOwners(false);
         else if (showDice) setShowDice(false);
         else if (showSettings) setShowSettings(false);
+        else if (showTracker) setShowTracker(false);
         else if (showHistory) setShowHistory(false);
       }
       if (selectedGame) {
@@ -210,7 +214,7 @@ function App() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [selectedGame, editingGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, showSettings, showHistory, navigateGame]);
+  }, [selectedGame, editingGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, showSettings, showTracker, showHistory, navigateGame]);
 
   const handleConfigChange = (gameId, config) => {
     setGameConfigs((prev) => ({ ...prev, [gameId]: config }));
@@ -330,6 +334,9 @@ function App() {
               <button onClick={() => setShowHistory(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Historial">
                 <History size={18} />
               </button>
+              <button onClick={() => setShowTracker(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Game Tracker">
+                <ListOrdered size={18} />
+              </button>
               <button onClick={() => setShowSettings(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Configuración">
                 <Settings size={18} />
               </button>
@@ -350,6 +357,7 @@ function App() {
                 { label: "Dados", icon: Dices, action: () => { setShowDice(true); setShowMobileMenu(false); } },
                 { label: "Leaderboard", icon: Trophy, action: () => { setShowLeaderboard(true); setShowMobileMenu(false); } },
                 { label: "Historial", icon: History, action: () => { setShowHistory(true); setShowMobileMenu(false); } },
+                { label: "Tracker", icon: ListOrdered, action: () => { setShowTracker(true); setShowMobileMenu(false); } },
                 { label: "Configuración", icon: Settings, action: () => { setShowSettings(true); setShowMobileMenu(false); } },
               ].map((item, i) => (
                 <button
@@ -667,6 +675,7 @@ function App() {
       )}
       {showDice && <DiceRoller onClose={() => setShowDice(false)} />}
       {showSettings && <SettingsPanel games={games} onClose={() => setShowSettings(false)} />}
+      {showTracker && <GameTracker games={games} onClose={() => setShowTracker(false)} />}
     </div>
   );
 }
