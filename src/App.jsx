@@ -111,7 +111,7 @@ function App() {
   const [showDice, setShowDice] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [editingGame, setEditingGame] = useState(null);
-  const [showAll, setShowAll] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("all"); // "all" | "base" | "extras"
   const [showHistory, setShowHistory] = useState(false);
   const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
   const [listSort, setListSort] = useState({ key: "days", asc: false }); // days desc = most days first
@@ -207,8 +207,10 @@ function App() {
   ];
 
   const displayableGames = useMemo(() => {
-    return showAll ? games : baseGames;
-  }, [games, baseGames, showAll]);
+    if (typeFilter === "base") return baseGames;
+    if (typeFilter === "extras") return games.filter((g) => g.tipo !== "Juego Base");
+    return games;
+  }, [games, baseGames, typeFilter]);
 
   const filteredGames = useMemo(() => {
     return displayableGames.filter((game) => {
@@ -235,7 +237,7 @@ function App() {
       }
       return true;
     });
-  }, [displayableGames, searchQuery, filterOwner, filterCategories, filterPlayerRange, filterTime, showAll]);
+  }, [displayableGames, searchQuery, filterOwner, filterCategories, filterPlayerRange, filterTime]);
 
   // Game stats for list view
   const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
@@ -723,27 +725,24 @@ function App() {
       {/* Stats */}
       <div className="max-w-[90rem] mx-auto px-3 sm:px-5 py-2 sm:py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-gray-400 tracking-wide uppercase">
-            <span>
-              {filteredGames.length === displayableGames.length
-                ? `${displayableGames.length} ${showAll ? "items" : "juegos"}`
-                : `${filteredGames.length} de ${displayableGames.length}`}
-            </span>
-            <span>·</span>
-            <span>{games.length - baseGames.length} expansiones</span>
+          <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs tracking-wide uppercase font-semibold">
+            <button onClick={() => setTypeFilter((v) => v === "base" ? "all" : "base")}
+              className={`cursor-pointer transition-colors ${typeFilter === "base" ? "text-orange-500" : "text-gray-400 hover:text-gray-500"}`}>
+              {baseGames.length} juegos
+            </button>
+            <span className="text-gray-300">·</span>
+            <button onClick={() => setTypeFilter((v) => v === "extras" ? "all" : "extras")}
+              className={`cursor-pointer transition-colors ${typeFilter === "extras" ? "text-orange-500" : "text-gray-400 hover:text-gray-500"}`}>
+              {games.length - baseGames.length} expansiones
+            </button>
+            {typeFilter !== "all" && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span className="text-gray-400">{filteredGames.length} mostrados</span>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowAll((v) => !v)}
-              className={`flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
-                showAll
-                  ? "bg-orange-500 text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-              }`}
-            >
-              <Eye size={12} />
-              {showAll ? "Mostrando todo" : "Mostrar todo"}
-            </button>
             <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
               <button onClick={() => setViewMode("grid")}
                 className={`p-1.5 rounded-md transition-colors cursor-pointer ${viewMode === "grid" ? "bg-white shadow-sm text-orange-500" : "text-gray-400 hover:text-gray-600"}`}>
