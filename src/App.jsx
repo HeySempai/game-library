@@ -703,21 +703,21 @@ function App() {
         ) : (
           <div className="space-y-2">
             {/* List header */}
-            <div className="grid grid-cols-[100px_1fr_140px_120px_60px_110px_130px] items-center gap-4 px-6 py-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+            <div className="grid grid-cols-[100px_1fr_120px_100px_80px_60px_110px_140px] items-center gap-4 px-6 py-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
               <div />
               <button onClick={() => toggleListSort("name")} className="flex items-center gap-1.5 cursor-pointer hover:text-gray-600 transition-colors">
-                Juego {listSort.key === "name" && <ArrowUpDown size={11} className="text-orange-500" />}
+                JUEGO {listSort.key === "name" && <ArrowUpDown size={11} className="text-orange-500" />}
               </button>
-              <div className="text-center">Jugadores</div>
-              <div className="text-center">Duración</div>
+              <div className="text-center">JUGADORES</div>
+              <div className="text-center">DURACIÓN</div>
               <button onClick={() => toggleListSort("days")} className="flex items-center justify-center gap-1.5 cursor-pointer hover:text-gray-600 transition-colors">
-                Jugado hace {listSort.key === "days" && <ArrowUpDown size={11} className="text-orange-500" />}
+                JUGADO HACE {listSort.key === "days" && <ArrowUpDown size={11} className="text-orange-500" />}
               </button>
               <button onClick={() => toggleListSort("count")} className="flex items-center justify-center gap-1.5 cursor-pointer hover:text-gray-600 transition-colors">
-                Veces {listSort.key === "count" && <ArrowUpDown size={11} className="text-orange-500" />}
+                VECES {listSort.key === "count" && <ArrowUpDown size={11} className="text-orange-500" />}
               </button>
-              <div className="text-center">Categoría</div>
-              <div className="text-center">Owners</div>
+              <div className="text-center">CATEGORÍA</div>
+              <div className="text-center">OWNERS</div>
             </div>
             {/* List rows */}
             {sortedFilteredGames.map((game) => {
@@ -737,7 +737,7 @@ function App() {
               const hasExtended = extendedMax > game.maxJugadores;
               return (
                 <div key={game.id} onClick={() => setSelectedGame(game)}
-                  className="group grid grid-cols-[100px_1fr_140px_120px_60px_110px_130px] items-center gap-4 px-6 py-4 bg-[#f2f3f5] rounded-xl hover:bg-[#ebedf0] transition-all cursor-pointer">
+                  className="group grid grid-cols-[100px_1fr_120px_100px_80px_60px_110px_140px] items-center gap-4 px-6 py-4 bg-[#f2f3f5] rounded-xl hover:bg-[#ebedf0] transition-all cursor-pointer">
                   {/* Cover */}
                   <div className="flex items-center justify-center h-20">
                     {game.imageUrl ? (
