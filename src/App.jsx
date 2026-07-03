@@ -18,6 +18,9 @@ import {
   Eye,
   History,
   ListOrdered,
+  LayoutGrid,
+  List,
+  ArrowUpDown,
 } from "lucide-react";
 import { initialGames } from "./data/games";
 import { imageMap } from "./data/images";
@@ -32,6 +35,9 @@ import {
   saveCategory,
   saveGameOverride,
   saveCustomGame,
+  loadGameSessions,
+  loadRngDisabled,
+  saveRngDisabled,
 } from "./utils/storage";
 import GameCard from "./components/GameCard";
 import GameDetail from "./components/GameDetail";
@@ -44,7 +50,6 @@ import DiceRoller from "./components/DiceRoller";
 import EditGameForm from "./components/EditGameForm";
 import SettingsPanel from "./components/SettingsPanel";
 import GameHistoryPanel from "./components/GameHistoryPanel";
-import GameTracker from "./components/GameTracker";
 
 function App() {
   const [games, setGames] = useState(initialGames);
@@ -63,7 +68,10 @@ function App() {
   const [editingGame, setEditingGame] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [showTracker, setShowTracker] = useState(false);
+  const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
+  const [listSort, setListSort] = useState({ key: "days", asc: false }); // days desc = most days first
+  const [allSessions, setAllSessions] = useState([]);
+  const [rngDisabled, setRngDisabled] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOwner, setFilterOwner] = useState("all");
   const [filterCategories, setFilterCategories] = useState(new Set());
@@ -117,6 +125,8 @@ function App() {
         return [...merged, ...newCustom];
       });
     });
+    loadGameSessions().then((s) => setAllSessions(s));
+    loadRngDisabled().then((r) => setRngDisabled(r));
   }, []);
 
   useEffect(() => {
@@ -182,6 +192,63 @@ function App() {
     });
   }, [displayableGames, searchQuery, filterOwner, filterCategories, filterPlayerRange, filterTime, showAll]);
 
+  // Game stats for list view
+  const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
+  const gameStats = useMemo(() => {
+    const lastPlayed = {};
+    const playCount = {};
+    allSessions.forEach((s) => {
+      playCount[s.game_id] = (playCount[s.game_id] || 0) + 1;
+      if (!lastPlayed[s.game_id] || s.date > lastPlayed[s.game_id]) lastPlayed[s.game_id] = s.date;
+    });
+    const map = {};
+    games.forEach((g) => {
+      const last = lastPlayed[g.id];
+      let daysSince = null;
+      if (last) {
+        const [y, m, d] = last.split("-");
+        daysSince = Math.floor((today - new Date(y, m - 1, d)) / 86400000);
+      }
+      map[g.id] = { lastPlayed: last, daysSince, playCount: playCount[g.id] || 0 };
+    });
+    return map;
+  }, [allSessions, games, today]);
+
+  const toggleListSort = (key) => {
+    setListSort((prev) => prev.key === key ? { key, asc: !prev.asc } : { key, asc: key === "name" });
+  };
+
+  const sortedFilteredGames = useMemo(() => {
+    if (viewMode !== "list") return filteredGames;
+    const list = [...filteredGames];
+    const { key, asc } = listSort;
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (key === "name") {
+        cmp = a.nombre.localeCompare(b.nombre);
+      } else if (key === "days") {
+        const da = gameStats[a.id]?.daysSince;
+        const db = gameStats[b.id]?.daysSince;
+        if (da === null && db === null) cmp = a.nombre.localeCompare(b.nombre);
+        else if (da === null) cmp = 1;
+        else if (db === null) cmp = -1;
+        else cmp = da - db;
+      } else if (key === "count") {
+        cmp = (gameStats[a.id]?.playCount || 0) - (gameStats[b.id]?.playCount || 0);
+      }
+      return asc ? cmp : -cmp;
+    });
+    return list;
+  }, [filteredGames, viewMode, listSort, gameStats]);
+
+  const toggleRng = (id) => {
+    const next = new Set(rngDisabled);
+    const nowDisabled = !next.has(id);
+    if (nowDisabled) next.add(id); else next.delete(id);
+    setRngDisabled(next);
+    saveRngDisabled(id, nowDisabled);
+  };
+
   const navigateGame = useCallback((dir) => {
     if (!selectedGame) return;
     const idx = filteredGames.findIndex((g) => g.id === selectedGame.id);
@@ -204,7 +271,6 @@ function App() {
         else if (showOwners) setShowOwners(false);
         else if (showDice) setShowDice(false);
         else if (showSettings) setShowSettings(false);
-        else if (showTracker) setShowTracker(false);
         else if (showHistory) setShowHistory(false);
       }
       if (selectedGame) {
@@ -214,7 +280,7 @@ function App() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [selectedGame, editingGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, showSettings, showTracker, showHistory, navigateGame]);
+  }, [selectedGame, editingGame, showAddForm, showQuickPicker, showMarathon, showLeaderboard, showOwners, showSettings, showHistory, navigateGame]);
 
   const handleConfigChange = (gameId, config) => {
     setGameConfigs((prev) => ({ ...prev, [gameId]: config }));
@@ -334,9 +400,6 @@ function App() {
               <button onClick={() => setShowHistory(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Historial">
                 <History size={18} />
               </button>
-              <button onClick={() => setShowTracker(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Game Tracker">
-                <ListOrdered size={18} />
-              </button>
               <button onClick={() => setShowSettings(true)} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer" title="Configuración">
                 <Settings size={18} />
               </button>
@@ -357,7 +420,6 @@ function App() {
                 { label: "Dados", icon: Dices, action: () => { setShowDice(true); setShowMobileMenu(false); } },
                 { label: "Leaderboard", icon: Trophy, action: () => { setShowLeaderboard(true); setShowMobileMenu(false); } },
                 { label: "Historial", icon: History, action: () => { setShowHistory(true); setShowMobileMenu(false); } },
-                { label: "Tracker", icon: ListOrdered, action: () => { setShowTracker(true); setShowMobileMenu(false); } },
                 { label: "Configuración", icon: Settings, action: () => { setShowSettings(true); setShowMobileMenu(false); } },
               ].map((item, i) => (
                 <button
@@ -585,28 +647,40 @@ function App() {
             <span>·</span>
             <span>{victories.length} partidas</span>
           </div>
-          <button
-            onClick={() => setShowAll((v) => !v)}
-            className={`flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
-              showAll
-                ? "bg-orange-500 text-white"
-                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-            }`}
-          >
-            <Eye size={12} />
-            {showAll ? "Mostrando todo" : "Mostrar todo"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowAll((v) => !v)}
+              className={`flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
+                showAll
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              <Eye size={12} />
+              {showAll ? "Mostrando todo" : "Mostrar todo"}
+            </button>
+            <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
+              <button onClick={() => setViewMode("grid")}
+                className={`p-1.5 rounded-md transition-colors cursor-pointer ${viewMode === "grid" ? "bg-white shadow-sm text-orange-500" : "text-gray-400 hover:text-gray-600"}`}>
+                <LayoutGrid size={14} />
+              </button>
+              <button onClick={() => setViewMode("list")}
+                className={`p-1.5 rounded-md transition-colors cursor-pointer ${viewMode === "list" ? "bg-white shadow-sm text-orange-500" : "text-gray-400 hover:text-gray-600"}`}>
+                <List size={14} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Grid / List */}
       <main className="max-w-[90rem] mx-auto px-3 sm:px-5 pb-10">
         {filteredGames.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-5xl mb-4 opacity-30">🎲</p>
             <p className="text-lg text-gray-400">No se encontraron juegos</p>
           </div>
-        ) : (
+        ) : viewMode === "grid" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
             {filteredGames.map((game) => (
               <GameCard
@@ -618,6 +692,60 @@ function App() {
                 onClick={() => setSelectedGame(game)}
               />
             ))}
+          </div>
+        ) : (
+          <div>
+            {/* List header */}
+            <div className="flex items-center gap-3 px-3 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+              <div className="w-8 shrink-0" />
+              <button onClick={() => toggleListSort("name")} className="flex-1 flex items-center gap-1 cursor-pointer hover:text-gray-600">
+                Juego {listSort.key === "name" && <ArrowUpDown size={10} className="text-orange-500" />}
+              </button>
+              <button onClick={() => toggleListSort("days")} className="w-20 text-center flex items-center justify-center gap-1 cursor-pointer hover:text-gray-600">
+                Última vez {listSort.key === "days" && <ArrowUpDown size={10} className="text-orange-500" />}
+              </button>
+              <button onClick={() => toggleListSort("count")} className="w-16 text-center flex items-center justify-center gap-1 cursor-pointer hover:text-gray-600">
+                Partidas {listSort.key === "count" && <ArrowUpDown size={10} className="text-orange-500" />}
+              </button>
+              <div className="w-10 text-center shrink-0">RNG</div>
+            </div>
+            {/* List rows */}
+            <div className="divide-y divide-gray-50">
+              {sortedFilteredGames.map((game) => {
+                const stats = gameStats[game.id] || {};
+                const rngOn = !rngDisabled.has(game.id);
+                return (
+                  <div key={game.id} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors group">
+                    {game.imageUrl ? (
+                      <img src={game.imageUrl} alt="" className="w-8 h-10 object-contain rounded shrink-0 cursor-pointer" onClick={() => setSelectedGame(game)} />
+                    ) : (
+                      <div className="w-8 h-10 bg-gray-200 rounded flex items-center justify-center shrink-0 text-xs cursor-pointer" onClick={() => setSelectedGame(game)}>🎲</div>
+                    )}
+                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setSelectedGame(game)}>
+                      <p className="text-sm font-medium text-gray-900 truncate">{game.nombre}</p>
+                      <p className="text-[11px] text-gray-400">{game.jugadoresDisplay} · {game.duracion}</p>
+                    </div>
+                    <div className="w-20 text-center">
+                      {stats.daysSince !== null && stats.daysSince !== undefined ? (
+                        <span className={`text-xs font-semibold ${stats.daysSince <= 7 ? "text-emerald-500" : stats.daysSince <= 30 ? "text-gray-500" : "text-orange-500"}`}>
+                          {stats.daysSince === 0 ? "Hoy" : stats.daysSince === 1 ? "Ayer" : `${stats.daysSince}d`}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-orange-400 font-medium">Nunca</span>
+                      )}
+                    </div>
+                    <div className="w-16 text-center">
+                      <span className="text-xs text-gray-500 font-medium">{stats.playCount || 0}</span>
+                    </div>
+                    <button onClick={() => toggleRng(game.id)} className="w-10 flex justify-center cursor-pointer shrink-0">
+                      <div className={`w-9 h-5 rounded-full transition-colors relative ${rngOn ? "bg-orange-500" : "bg-gray-200"}`}>
+                        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${rngOn ? "translate-x-[18px]" : "translate-x-0.5"}`} />
+                      </div>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </main>
@@ -675,7 +803,6 @@ function App() {
       )}
       {showDice && <DiceRoller onClose={() => setShowDice(false)} />}
       {showSettings && <SettingsPanel games={games} onClose={() => setShowSettings(false)} />}
-      {showTracker && <GameTracker games={games} onClose={() => setShowTracker(false)} />}
     </div>
   );
 }

@@ -1,0 +1,1 @@
+- [Player nicknames](user_nicknames.md) — Negro = Ernesto Aguirre
