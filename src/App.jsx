@@ -697,7 +697,7 @@ function App() {
         ) : (
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
             {/* List header */}
-            <div className="grid grid-cols-[40px_1fr_100px_80px_100px_90px] sm:grid-cols-[44px_1fr_110px_90px_120px_100px] items-center gap-2 sm:gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+            <div className="grid grid-cols-[40px_1fr_100px_80px_100px_110px] sm:grid-cols-[44px_1fr_110px_90px_120px_130px] items-center gap-2 sm:gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
               <div />
               <button onClick={() => toggleListSort("name")} className="flex items-center gap-1.5 cursor-pointer hover:text-gray-600 transition-colors">
                 Juego {listSort.key === "name" && <ArrowUpDown size={11} className="text-orange-500" />}
@@ -726,7 +726,7 @@ function App() {
                 };
                 return (
                   <div key={game.id} onClick={() => setSelectedGame(game)}
-                    className="grid grid-cols-[40px_1fr_100px_80px_100px_90px] sm:grid-cols-[44px_1fr_110px_90px_120px_100px] items-center gap-2 sm:gap-3 px-4 py-3 hover:bg-orange-50/40 transition-colors cursor-pointer">
+                    className="grid grid-cols-[40px_1fr_100px_80px_100px_110px] sm:grid-cols-[44px_1fr_110px_90px_120px_130px] items-center gap-2 sm:gap-3 px-4 py-3 hover:bg-orange-50/40 transition-colors cursor-pointer">
                     {game.imageUrl ? (
                       <img src={game.imageUrl} alt="" className="w-10 h-12 sm:w-11 sm:h-14 object-contain rounded shrink-0" />
                     ) : (
@@ -759,21 +759,21 @@ function App() {
                       )}
                     </div>
                     <div className="flex justify-center">
-                      <div className="flex items-center -space-x-1.5">
+                      <div className="flex items-center -space-x-2">
                         {game.owners.slice(0, 4).map((owner, i) => {
                           const ownerData = ownersData.find((o) => o.nombre === owner);
                           return ownerData?.avatar ? (
                             <img key={i} src={ownerData.avatar} alt={owner} title={owner}
-                              className="w-6 h-6 rounded-full object-cover border-2 border-white" />
+                              className="w-8 h-8 rounded-full object-cover border-2 border-white" />
                           ) : (
                             <span key={i} title={owner}
-                              className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[9px] font-bold text-gray-400">
+                              className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-400">
                               {owner.charAt(0)}
                             </span>
                           );
                         })}
                         {game.owners.length > 4 && (
-                          <span className="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-[9px] font-bold text-gray-400">
+                          <span className="w-8 h-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-400">
                             +{game.owners.length - 4}
                           </span>
                         )}

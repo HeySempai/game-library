@@ -329,6 +329,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
       const origLevel = editParticipants?.[0]?.score;
       if (level !== (origLevel !== null && origLevel !== undefined ? origLevel : null)) return true;
     }
+    if (selectedExpansions.length > 0) return true;
     const validP = participants.filter((p) => p.playerName.trim());
     if (validP.length !== (editParticipants?.length || 0)) return true;
     for (let i = 0; i < validP.length; i++) {
@@ -340,7 +341,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
       if ((validP[i].team || "") !== (orig.team || "")) return true;
     }
     return false;
-  }, [isEdit, date, durationMinutes, notes, cooperativeWin, isOfficial, level, participants, editSession, editParticipants, levelConfig]);
+  }, [isEdit, date, durationMinutes, notes, cooperativeWin, isOfficial, level, participants, selectedExpansions, editSession, editParticipants, levelConfig]);
 
   // Already-selected player names
   const usedNames = participants.map((p) => p.playerName).filter(Boolean);
