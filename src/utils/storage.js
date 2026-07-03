@@ -103,11 +103,17 @@ export async function saveCategory(gameId, category) {
 }
 
 // Game overrides (owners, name, image for hardcoded games)
-export async function saveGameOverride(gameId, { owners, nombre, imageUrl }) {
+export async function saveGameOverride(gameId, { owners, nombre, imageUrl, duracion, minJugadores, maxJugadores }) {
   const updates = {};
   if (owners !== undefined) updates.owners = owners;
   if (nombre !== undefined) updates.custom_nombre = nombre || null;
   if (imageUrl !== undefined) updates.image_url = imageUrl || null;
+  if (duracion !== undefined) updates.duracion = duracion || null;
+  if (minJugadores !== undefined) updates.min_jugadores = minJugadores || null;
+  if (maxJugadores !== undefined) updates.max_jugadores = maxJugadores || null;
+  if (minJugadores !== undefined && maxJugadores !== undefined) {
+    updates.jugadores_display = minJugadores && maxJugadores ? `${minJugadores}-${maxJugadores}` : null;
+  }
   // Try update first to avoid NOT NULL violation on upsert
   const { data } = await supabase.from("game_config").update(updates).eq("game_id", gameId).select();
   if (!data || data.length === 0) {

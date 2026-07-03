@@ -352,9 +352,22 @@ function App() {
       setGameConfigs((prev) => ({ ...prev, [newGame.id]: { victoryType: newGame.victoryType } }));
     }
   };
-  const handleEditGame = (gameId, { nombre, owners, category, imageUrl }) => {
+  const handleEditGame = (gameId, { nombre, owners, category, imageUrl, duracion, minJugadores, maxJugadores }) => {
+    const jugadoresDisplay = minJugadores && maxJugadores ? `${minJugadores}-${maxJugadores}` : undefined;
     setGames((prev) =>
-      prev.map((g) => (g.id === gameId ? { ...g, nombre: nombre || g.nombre, owners, ...(imageUrl !== undefined ? { imageUrl } : {}) } : g))
+      prev.map((g) => {
+        if (g.id !== gameId) return g;
+        return {
+          ...g,
+          nombre: nombre || g.nombre,
+          owners,
+          ...(imageUrl !== undefined ? { imageUrl } : {}),
+          ...(duracion !== undefined ? { duracion } : {}),
+          ...(minJugadores !== undefined ? { minJugadores } : {}),
+          ...(maxJugadores !== undefined ? { maxJugadores } : {}),
+          ...(jugadoresDisplay ? { jugadoresDisplay } : {}),
+        };
+      })
     );
     if (category) {
       categoryMap[gameId] = category;
@@ -362,9 +375,16 @@ function App() {
       delete categoryMap[gameId];
     }
     saveCategory(gameId, category || null);
-    saveGameOverride(gameId, { owners, nombre, imageUrl });
+    saveGameOverride(gameId, { owners, nombre, imageUrl, duracion, minJugadores, maxJugadores });
     if (selectedGame?.id === gameId) {
-      setSelectedGame((prev) => ({ ...prev, nombre: nombre || prev.nombre, owners, ...(imageUrl !== undefined ? { imageUrl } : {}) }));
+      setSelectedGame((prev) => ({
+        ...prev, nombre: nombre || prev.nombre, owners,
+        ...(imageUrl !== undefined ? { imageUrl } : {}),
+        ...(duracion !== undefined ? { duracion } : {}),
+        ...(minJugadores !== undefined ? { minJugadores } : {}),
+        ...(maxJugadores !== undefined ? { maxJugadores } : {}),
+        ...(jugadoresDisplay ? { jugadoresDisplay } : {}),
+      }));
     }
   };
 

@@ -21,6 +21,9 @@ const TEAM_MODES = [
 
 export default function EditGameForm({ game, players, gameConfig, onSave, onClose, onConfigChange }) {
   const [nombre, setNombre] = useState(game.nombre);
+  const [duracion, setDuracion] = useState(game.duracion || "");
+  const [minJugadores, setMinJugadores] = useState(game.minJugadores?.toString() || "");
+  const [maxJugadores, setMaxJugadores] = useState(game.maxJugadores?.toString() || "");
   const [owners, setOwners] = useState([...game.owners]);
   const [category, setCategory] = useState(categoryMap[game.id] || "");
   const [newOwner, setNewOwner] = useState("");
@@ -34,7 +37,15 @@ export default function EditGameForm({ game, players, gameConfig, onSave, onClos
     // Save victory config to DB
     await saveGameConfig(game.id, victoryType, victoryType === "team_winner" ? (teamMode || null) : null);
     if (onConfigChange) onConfigChange(game.id, { victoryType, teamMode: victoryType === "team_winner" ? teamMode : null });
-    onSave({ nombre: nombre.trim() || game.nombre, owners, category, imageUrl });
+    onSave({
+      nombre: nombre.trim() || game.nombre,
+      owners,
+      category,
+      imageUrl,
+      duracion: duracion.trim() || game.duracion,
+      minJugadores: minJugadores ? parseInt(minJugadores) : game.minJugadores,
+      maxJugadores: maxJugadores ? parseInt(maxJugadores) : game.maxJugadores,
+    });
     onClose();
   };
 
@@ -102,6 +113,32 @@ export default function EditGameForm({ game, players, gameConfig, onSave, onClos
             <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)}
               className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 text-sm focus:border-orange-400 focus:outline-none" />
           </div>
+
+          {/* Duración */}
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-1">Duración</label>
+            <input type="text" value={duracion} onChange={(e) => setDuracion(e.target.value)}
+              className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 text-sm focus:border-orange-400 focus:outline-none"
+              placeholder="ej. 30-60 mins" />
+          </div>
+
+          {/* Jugadores */}
+          {game.tipo !== "Expansion" && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Min Jugadores</label>
+                <input type="number" min="1" value={minJugadores}
+                  onChange={(e) => setMinJugadores(e.target.value)}
+                  className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 text-sm focus:border-orange-400 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Max Jugadores</label>
+                <input type="number" min="1" value={maxJugadores}
+                  onChange={(e) => setMaxJugadores(e.target.value)}
+                  className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-700 text-sm focus:border-orange-400 focus:outline-none" />
+              </div>
+            </div>
+          )}
 
           {/* Victory Type */}
           <div>
