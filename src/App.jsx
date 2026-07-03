@@ -731,8 +731,6 @@ function App() {
             </span>
             <span>·</span>
             <span>{games.length - baseGames.length} expansiones</span>
-            <span>·</span>
-            <span>{victories.length} partidas</span>
           </div>
           <div className="flex items-center gap-2">
             <button
