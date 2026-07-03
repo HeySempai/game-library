@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   Plus,
   Trophy,
@@ -50,6 +50,49 @@ import DiceRoller from "./components/DiceRoller";
 import EditGameForm from "./components/EditGameForm";
 import SettingsPanel from "./components/SettingsPanel";
 import GameHistoryPanel from "./components/GameHistoryPanel";
+
+function ListRow({ children, onClick }) {
+  const ref = useRef(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [hovered, setHovered] = useState(false);
+  const handleMouseMove = useCallback((e) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }, []);
+  return (
+    <button onClick={onClick} className="group text-left w-full cursor-pointer transition-all duration-300">
+      <div ref={ref} onMouseMove={handleMouseMove} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+        className="relative rounded-xl p-[1.5px] overflow-hidden transition-all duration-300"
+        style={{
+          background: hovered ? undefined : '#f2f3f5',
+          boxShadow: hovered ? '0 0 12px 2px rgba(255,140,0,0.2), 0 0 4px 1px rgba(255,180,80,0.15)' : 'none',
+        }}>
+        <div className="absolute inset-[-50%] transition-opacity duration-300 pointer-events-none blur-[3px]"
+          style={{
+            opacity: hovered ? 1 : 0,
+            background: 'conic-gradient(from 0deg, #ff8c00, #fff4e0, #ff6b00, #ffffff, #ffaa33, #fff8ee, #ff5500, #ffe0b2, #ff8c00)',
+            animation: hovered ? 'spin-border 5s linear infinite' : 'none',
+          }} />
+        <div className="absolute inset-0 rounded-xl transition-opacity duration-300 pointer-events-none"
+          style={{
+            opacity: hovered ? 1 : 0,
+            background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,255,255,0.95), rgba(255,150,40,0.6) 35%, transparent 65%)`,
+          }} />
+        <div className="relative bg-[#f2f3f5] rounded-[9px] transition-colors duration-300 overflow-hidden">
+          <div className="absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none"
+            style={{
+              opacity: hovered ? 1 : 0,
+              background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,140,0,0.04), transparent 60%)`,
+            }} />
+          <div className="relative grid grid-cols-[100px_1fr_120px_100px_80px_60px_110px_140px] items-center gap-4 px-6 py-4">
+            {children}
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
 
 function App() {
   const [games, setGames] = useState(initialGames);
@@ -734,16 +777,13 @@ function App() {
               ampliaciones.forEach((a) => { if (a.maxJugadores > extendedMax) extendedMax = a.maxJugadores; });
               const hasExtended = extendedMax > game.maxJugadores;
               return (
-                <div key={game.id} onClick={() => setSelectedGame(game)}
-                  className="group grid grid-cols-[100px_1fr_120px_100px_80px_60px_110px_140px] items-center gap-4 px-6 py-4 bg-[#f2f3f5] rounded-xl hover:bg-[#ebedf0] transition-all cursor-pointer">
+                <ListRow key={game.id} onClick={() => setSelectedGame(game)}>
                   {/* Cover */}
                   <div className="flex items-center justify-center h-20">
                     {game.imageUrl ? (
                       <img src={game.imageUrl} alt={game.nombre}
-                        className="max-h-20 max-w-[90px] object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-[-2deg]"
-                        style={{ filter: "drop-shadow(3px 5px 5px rgba(0,0,0,0.2))" }}
-                        onMouseEnter={(e) => e.currentTarget.style.filter = "drop-shadow(6px 10px 10px rgba(0,0,0,0.4))"}
-                        onMouseLeave={(e) => e.currentTarget.style.filter = "drop-shadow(3px 5px 5px rgba(0,0,0,0.2))"} />
+                        className="max-h-20 max-w-[90px] object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-[-2deg] group-hover:[filter:drop-shadow(8px_14px_14px_rgba(0,0,0,0.45))_drop-shadow(3px_6px_8px_rgba(0,0,0,0.3))]"
+                        style={{ filter: "drop-shadow(3px 5px 5px rgba(0,0,0,0.2))" }} />
                     ) : (
                       <div className="w-16 h-20 bg-gray-200 rounded-lg flex items-center justify-center text-2xl opacity-30">🎲</div>
                     )}
@@ -807,7 +847,7 @@ function App() {
                       )}
                     </div>
                   </div>
-                </div>
+                </ListRow>
               );
             })}
           </div>
