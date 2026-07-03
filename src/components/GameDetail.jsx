@@ -123,7 +123,16 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
 
   useEffect(() => {
     const load = async () => {
-      const s = await loadGameSessions(game.id);
+      let s;
+      if (game.tipo === "Juego Base") {
+        s = await loadGameSessions(game.id);
+      } else if (game.parentId) {
+        // For expansions/ampliaciones: load parent sessions that used this expansion
+        const parentSessions = await loadGameSessions(game.parentId);
+        s = parentSessions.filter((ps) => (ps.expansions || []).includes(game.id));
+      } else {
+        s = [];
+      }
       setSessions(s);
       if (s.length > 0) {
         const pm = await loadSessionParticipants(s.map((x) => x.id));
@@ -367,6 +376,20 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
                                       {p.is_winner && "🏆 "}{p.player_name}{p.score !== null ? ` · ${p.score}` : ""}
                                     </span>
                                   ))}
+                                </div>
+                              )}
+                              {(s.expansions || []).length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {s.expansions.map((expId) => {
+                                    const exp = allGames.find((g) => g.id === expId);
+                                    return exp ? (
+                                      <span key={expId} className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                        exp.tipo === "Ampliacion" ? "bg-amber-50 text-amber-500" : "bg-sky-50 text-sky-500"
+                                      }`}>
+                                        {exp.tipo === "Ampliacion" ? "AMP" : "EXP"} {exp.nombre}
+                                      </span>
+                                    ) : null;
+                                  })}
                                 </div>
                               )}
                               {s.notes && <p className="text-[10px] text-gray-300 italic mt-1.5">"{s.notes}"</p>}
