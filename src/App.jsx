@@ -728,19 +728,13 @@ function App() {
           <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs tracking-wide uppercase font-semibold">
             <button onClick={() => setTypeFilter((v) => v === "base" ? "all" : "base")}
               className={`cursor-pointer transition-colors ${typeFilter === "base" ? "text-orange-500" : "text-gray-400 hover:text-gray-500"}`}>
-              {baseGames.length} juegos
+              {filteredGames.filter((g) => g.tipo === "Juego Base").length} JUEGOS
             </button>
             <span className="text-gray-300">·</span>
             <button onClick={() => setTypeFilter((v) => v === "extras" ? "all" : "extras")}
               className={`cursor-pointer transition-colors ${typeFilter === "extras" ? "text-orange-500" : "text-gray-400 hover:text-gray-500"}`}>
-              {games.length - baseGames.length} expansiones
+              {filteredGames.filter((g) => g.tipo !== "Juego Base").length} EXPANSIONES
             </button>
-            {typeFilter !== "all" && (
-              <>
-                <span className="text-gray-300">·</span>
-                <span className="text-gray-400">{filteredGames.length} mostrados</span>
-              </>
-            )}
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
