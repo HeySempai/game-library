@@ -8,8 +8,7 @@ import { playClick, playTick, playSuccess, playPop } from "../utils/sounds";
 const categoryColors = {
   "Party Game": { bg: "bg-pink-500", inactive: "bg-gray-200 text-gray-400", active: "bg-pink-500 text-white" },
   "Estrategia": { bg: "bg-emerald-500", inactive: "bg-gray-200 text-gray-400", active: "bg-emerald-500 text-white" },
-  "Deducción Social": { bg: "bg-red-500", inactive: "bg-gray-200 text-gray-400", active: "bg-red-500 text-white" },
-  "Cooperativo": { bg: "bg-cyan-500", inactive: "bg-gray-200 text-gray-400", active: "bg-cyan-500 text-white" },
+  "Política": { bg: "bg-red-500", inactive: "bg-gray-200 text-gray-400", active: "bg-red-500 text-white" },
   "Aventura": { bg: "bg-orange-500", inactive: "bg-gray-200 text-gray-400", active: "bg-orange-500 text-white" },
   "Card Game": { bg: "bg-indigo-500", inactive: "bg-gray-200 text-gray-400", active: "bg-indigo-500 text-white" },
 };

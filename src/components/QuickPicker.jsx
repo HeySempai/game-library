@@ -7,8 +7,7 @@ import { loadRngDisabled } from "../utils/storage";
 const categoryColors = {
   "Party Game": { bg: "bg-pink-500", inactive: "bg-gray-200 text-gray-400" },
   "Estrategia": { bg: "bg-emerald-500", inactive: "bg-gray-200 text-gray-400" },
-  "Deducción Social": { bg: "bg-red-500", inactive: "bg-gray-200 text-gray-400" },
-  "Cooperativo": { bg: "bg-cyan-500", inactive: "bg-gray-200 text-gray-400" },
+  "Política": { bg: "bg-red-500", inactive: "bg-gray-200 text-gray-400" },
   "Aventura": { bg: "bg-orange-500", inactive: "bg-gray-200 text-gray-400" },
   "Card Game": { bg: "bg-indigo-500", inactive: "bg-gray-200 text-gray-400" },
 };

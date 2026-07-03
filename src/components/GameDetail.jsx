@@ -13,8 +13,8 @@ ownersData.forEach((o) => { avatarMap[o.nombre] = o.avatar; });
 const tipoBadge = { "Juego Base": "bg-orange-500", Ampliacion: "bg-amber-500", Expansion: "bg-sky-500" };
 
 const categoryColors = {
-  "Party Game": "bg-pink-500", "Estrategia": "bg-emerald-500", "Deducción Social": "bg-red-500",
-  "Cooperativo": "bg-cyan-500", "Aventura": "bg-orange-500", "Card Game": "bg-indigo-500",
+  "Party Game": "bg-pink-500", "Estrategia": "bg-emerald-500", "Política": "bg-red-500",
+  "Aventura": "bg-orange-500", "Card Game": "bg-indigo-500",
 };
 
 const VICTORY_LABELS = {

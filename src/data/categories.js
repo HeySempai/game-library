@@ -31,17 +31,11 @@ export const categoryMap = {
   "dune-imperium": "Estrategia",
   "root": "Estrategia",
 
-  // Social Deduction
-  "werewolf": "Deducción Social",
-  "coup": "Deducción Social",
-  "saboteur": "Deducción Social",
-  "salem-1692": "Deducción Social",
-
-  // Cooperativo
-  "cuphead": "Cooperativo",
-  "hp-hogwarts": "Cooperativo",
-  "horrified": "Cooperativo",
-  "the-mind": "Cooperativo",
+  // Política
+  "werewolf": "Política",
+  "coup": "Política",
+  "saboteur": "Política",
+  "salem-1692": "Política",
 
   // Aventura / Temático
   "betrayal": "Aventura",
@@ -63,8 +57,7 @@ export const categoryMap = {
 export const allCategories = [
   "Party Game",
   "Estrategia",
-  "Deducción Social",
-  "Cooperativo",
+  "Política",
   "Aventura",
   "Card Game",
 ];

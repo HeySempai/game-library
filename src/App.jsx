@@ -339,8 +339,7 @@ function App() {
   const categoryColors = {
     "Party Game": { bg: "bg-pink-500", inactive: "bg-pink-100 text-pink-600" },
     "Estrategia": { bg: "bg-emerald-500", inactive: "bg-emerald-100 text-emerald-600" },
-    "Deducción Social": { bg: "bg-red-500", inactive: "bg-red-100 text-red-600" },
-    "Cooperativo": { bg: "bg-cyan-500", inactive: "bg-cyan-100 text-cyan-600" },
+    "Política": { bg: "bg-red-500", inactive: "bg-red-100 text-red-600" },
     "Aventura": { bg: "bg-orange-500", inactive: "bg-orange-100 text-orange-600" },
     "Card Game": { bg: "bg-indigo-500", inactive: "bg-indigo-100 text-indigo-600" },
   };
@@ -726,8 +725,7 @@ function App() {
               const catColorMap = {
                 "Party Game": "bg-pink-100 text-pink-600",
                 "Estrategia": "bg-emerald-100 text-emerald-600",
-                "Deducción Social": "bg-red-100 text-red-600",
-                "Cooperativo": "bg-cyan-100 text-cyan-600",
+                "Política": "bg-red-100 text-red-600",
                 "Aventura": "bg-orange-100 text-orange-600",
                 "Card Game": "bg-indigo-100 text-indigo-600",
               };
@@ -782,7 +780,7 @@ function App() {
                   {/* Category */}
                   <div className="flex justify-center">
                     {cat ? (
-                      <span className={`text-xs font-semibold px-3 py-1 rounded-full ${catColorMap[cat] || "bg-gray-100 text-gray-500"}`}>{cat}</span>
+                      <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap ${catColorMap[cat] || "bg-gray-100 text-gray-500"}`}>{cat}</span>
                     ) : (
                       <span className="text-xs text-gray-300">—</span>
                     )}
