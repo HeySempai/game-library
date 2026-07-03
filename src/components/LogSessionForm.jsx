@@ -114,7 +114,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     (allGames || []).filter((g) => g.parentId === game.id && (g.tipo === "Expansion" || g.tipo === "Ampliacion")),
     [game.id, allGames]
   );
-  const [selectedExpansions, setSelectedExpansions] = useState([]);
+  const [selectedExpansions, setSelectedExpansions] = useState(() => editSession?.expansions || []);
 
   // Max players calculation (considering selected expansions)
   const maxPlayers = useMemo(() => {
@@ -329,7 +329,8 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
       const origLevel = editParticipants?.[0]?.score;
       if (level !== (origLevel !== null && origLevel !== undefined ? origLevel : null)) return true;
     }
-    if (selectedExpansions.length > 0) return true;
+    const origExp = editSession.expansions || [];
+    if (selectedExpansions.length !== origExp.length || selectedExpansions.some((e) => !origExp.includes(e))) return true;
     const validP = participants.filter((p) => p.playerName.trim());
     if (validP.length !== (editParticipants?.length || 0)) return true;
     for (let i = 0; i < validP.length; i++) {
@@ -445,6 +446,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
         cooperativeWin: effectiveVictoryType === "cooperative" ? finalCoopWin : null,
         notes: notes.trim() || null,
         isOfficial: isOfficial,
+        expansions: selectedExpansions,
       },
       participants: finalParticipants.map((p) => ({
         playerName: p.playerName,

@@ -199,8 +199,14 @@ function App() {
     const lastPlayed = {};
     const playCount = {};
     allSessions.forEach((s) => {
+      // Count base game
       playCount[s.game_id] = (playCount[s.game_id] || 0) + 1;
       if (!lastPlayed[s.game_id] || s.date > lastPlayed[s.game_id]) lastPlayed[s.game_id] = s.date;
+      // Count expansions used in this session
+      (s.expansions || []).forEach((expId) => {
+        playCount[expId] = (playCount[expId] || 0) + 1;
+        if (!lastPlayed[expId] || s.date > lastPlayed[expId]) lastPlayed[expId] = s.date;
+      });
     });
     const map = {};
     games.forEach((g) => {

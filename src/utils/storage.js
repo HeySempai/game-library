@@ -191,6 +191,7 @@ export async function createGameSession(session, participants) {
     cooperative_win: session.cooperativeWin ?? null,
     notes: session.notes || null,
     is_official: session.isOfficial ?? true,
+    expansions: session.expansions || [],
   }).select().single();
   if (error) { console.error("Error creating session:", error); return null; }
 
@@ -216,6 +217,7 @@ export async function updateGameSession(sessionId, session, participants) {
     cooperative_win: session.cooperativeWin ?? null,
     notes: session.notes || null,
     is_official: session.isOfficial ?? true,
+    expansions: session.expansions || [],
   }).eq("id", sessionId);
   if (error) { console.error("Error updating session:", error); return; }
 
