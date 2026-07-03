@@ -317,6 +317,31 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     return { valid: errors.length === 0, errors };
   }, [participants, durationMinutes, effectiveVictoryType, cooperativeWin, isScoreBased]);
 
+  // Detect if anything changed from original edit data
+  const hasChanges = useMemo(() => {
+    if (!isEdit) return true;
+    if (date !== editSession.date) return true;
+    if (durationMinutes !== (editSession.duration_minutes?.toString() || "")) return true;
+    if (notes !== (editSession.notes || "")) return true;
+    if (cooperativeWin !== (editSession.cooperative_win ?? null)) return true;
+    if (isOfficial !== (editSession.is_official ?? true)) return true;
+    if (levelConfig) {
+      const origLevel = editParticipants?.[0]?.score;
+      if (level !== (origLevel !== null && origLevel !== undefined ? origLevel : null)) return true;
+    }
+    const validP = participants.filter((p) => p.playerName.trim());
+    if (validP.length !== (editParticipants?.length || 0)) return true;
+    for (let i = 0; i < validP.length; i++) {
+      const orig = editParticipants?.find((ep) => ep.player_name === validP[i].playerName);
+      if (!orig) return true;
+      if (validP[i].isWinner !== (orig.is_winner || false)) return true;
+      const origScore = orig.score !== null && orig.score !== undefined ? orig.score.toString() : "";
+      if (validP[i].score !== origScore) return true;
+      if ((validP[i].team || "") !== (orig.team || "")) return true;
+    }
+    return false;
+  }, [isEdit, date, durationMinutes, notes, cooperativeWin, isOfficial, level, participants, editSession, editParticipants, levelConfig]);
+
   // Already-selected player names
   const usedNames = participants.map((p) => p.playerName).filter(Boolean);
   const canAddMore = participants.length < effectiveMaxPlayers;
@@ -753,7 +778,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
           </div>
 
           {(() => {
-            const canSubmit = teamValidation.valid && formValidation.valid;
+            const canSubmit = teamValidation.valid && formValidation.valid && hasChanges;
             return (
               <button type="submit" disabled={!canSubmit}
                 className={`w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 text-base ${
