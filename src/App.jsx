@@ -35,6 +35,7 @@ import {
   saveCategory,
   saveGameOverride,
   saveCustomGame,
+  saveGameConfig,
   loadGameSessions,
   loadRngDisabled,
   saveRngDisabled,
@@ -118,7 +119,7 @@ function App() {
   const [rngDisabled, setRngDisabled] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOwner, setFilterOwner] = useState("all");
-  const [filterCategories, setFilterCategories] = useState(new Set());
+  const [filterCategories, setFilterCategories] = useState(new Set(allCategories));
   const [filterPlayerRange, setFilterPlayerRange] = useState("all");
   const [filterTime, setFilterTime] = useState(0);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -185,7 +186,7 @@ function App() {
 
   const hasActiveFilters =
     filterOwner !== "all" ||
-    filterCategories.size > 0 ||
+    filterCategories.size < allCategories.length ||
     filterPlayerRange !== "all" ||
     filterTime !== 0;
 
@@ -214,9 +215,9 @@ function App() {
       const q = searchQuery.toLowerCase();
       if (q && !game.nombre.toLowerCase().includes(q) && !game.developer.toLowerCase().includes(q)) return false;
       if (filterOwner !== "all" && !game.owners.includes(filterOwner)) return false;
-      if (filterCategories.size > 0) {
-        const cat = categoryMap[game.id] || (game.parentId ? categoryMap[game.parentId] : null) || "Sin clasificar";
-        if (!filterCategories.has(cat)) return false;
+      if (filterCategories.size < allCategories.length) {
+        const cat = categoryMap[game.id] || (game.parentId ? categoryMap[game.parentId] : null);
+        if (!cat || !filterCategories.has(cat)) return false;
       }
       if (filterPlayerRange !== "all" && game.tipo === "Juego Base") {
         const range = playerRanges.find((r) => r.label === filterPlayerRange);
@@ -342,6 +343,14 @@ function App() {
       if (!players.includes(owner)) setPlayers((prev) => [...prev, owner]);
     });
     saveCustomGame(newGame);
+    if (newGame.category) {
+      categoryMap[newGame.id] = newGame.category;
+      saveCategory(newGame.id, newGame.category);
+    }
+    if (newGame.victoryType) {
+      saveGameConfig(newGame.id, newGame.victoryType);
+      setGameConfigs((prev) => ({ ...prev, [newGame.id]: { victoryType: newGame.victoryType } }));
+    }
   };
   const handleEditGame = (gameId, { nombre, owners, category, imageUrl }) => {
     setGames((prev) =>
@@ -374,7 +383,7 @@ function App() {
 
   const clearFilters = () => {
     setFilterOwner("all");
-    setFilterCategories(new Set());
+    setFilterCategories(new Set(allCategories));
     setFilterPlayerRange("all");
     setFilterTime(0);
   };
@@ -523,7 +532,7 @@ function App() {
                         className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all cursor-pointer whitespace-nowrap ${
                           active
                             ? `${colors.bg} text-white shadow-sm`
-                            : `${colors.inactive} opacity-60 hover:opacity-100`
+                            : "bg-gray-100 text-gray-300 opacity-40 hover:opacity-70"
                         }`}
                       >
                         {cat}
@@ -617,7 +626,7 @@ function App() {
                     className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer whitespace-nowrap ${
                       active
                         ? `${colors.bg} text-white shadow-sm`
-                        : `${colors.inactive} opacity-60 hover:opacity-100`
+                        : "bg-gray-100 text-gray-300 opacity-40 hover:opacity-70"
                     }`}
                   >
                     {cat}
