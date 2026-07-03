@@ -143,7 +143,7 @@ const _games = [
     duracion: "90 mins",
     minJugadores: null,
     maxJugadores: null,
-    jugadoresDisplay: "= Base (+1)",
+    jugadoresDisplay: "= Base",
     developer: "REPOS PRODUCTION",
     owners: ["Ernesto Aguirre"],
     parentId: "7w-base",
