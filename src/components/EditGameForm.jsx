@@ -20,6 +20,7 @@ const TEAM_MODES = [
 ];
 
 export default function EditGameForm({ game, players, gameConfig, onSave, onClose, onConfigChange }) {
+  const [tipo, setTipo] = useState(game.tipo);
   const [nombre, setNombre] = useState(game.nombre);
   const [duracion, setDuracion] = useState(game.duracion || "");
   const [minJugadores, setMinJugadores] = useState(game.minJugadores?.toString() || "");
@@ -39,12 +40,13 @@ export default function EditGameForm({ game, players, gameConfig, onSave, onClos
     if (onConfigChange) onConfigChange(game.id, { victoryType, teamMode: victoryType === "team_winner" ? teamMode : null });
     onSave({
       nombre: nombre.trim() || game.nombre,
+      tipo,
       owners,
       category,
       imageUrl,
       duracion: duracion.trim() || game.duracion,
-      minJugadores: minJugadores ? parseInt(minJugadores) : game.minJugadores,
-      maxJugadores: maxJugadores ? parseInt(maxJugadores) : game.maxJugadores,
+      minJugadores: tipo === "Expansion" ? null : (minJugadores ? parseInt(minJugadores) : game.minJugadores),
+      maxJugadores: tipo === "Expansion" ? null : (maxJugadores ? parseInt(maxJugadores) : game.maxJugadores),
     });
     onClose();
   };
@@ -89,6 +91,19 @@ export default function EditGameForm({ game, players, gameConfig, onSave, onClos
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-5">
+          {/* Tipo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-1">Tipo</label>
+            <div className="flex gap-2">
+              {["Juego Base", "Ampliacion", "Expansion"].map((t) => (
+                <button key={t} type="button" onClick={() => setTipo(t)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                    tipo === t ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  }`}>{t}</button>
+              ))}
+            </div>
+          </div>
+
           {/* Cover image */}
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-2">Portada</label>
@@ -123,7 +138,7 @@ export default function EditGameForm({ game, players, gameConfig, onSave, onClos
           </div>
 
           {/* Jugadores */}
-          {game.tipo !== "Expansion" && (
+          {tipo !== "Expansion" && (
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-500 mb-1">Min Jugadores</label>

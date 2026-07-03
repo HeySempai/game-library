@@ -352,14 +352,22 @@ function App() {
       setGameConfigs((prev) => ({ ...prev, [newGame.id]: { victoryType: newGame.victoryType } }));
     }
   };
-  const handleEditGame = (gameId, { nombre, owners, category, imageUrl, duracion, minJugadores, maxJugadores }) => {
-    const jugadoresDisplay = minJugadores && maxJugadores ? `${minJugadores}-${maxJugadores}` : undefined;
+  const handleEditGame = (gameId, { nombre, tipo, owners, category, imageUrl, duracion, minJugadores, maxJugadores }) => {
+    let jugadoresDisplay;
+    if (tipo === "Expansion") {
+      jugadoresDisplay = "= Base";
+    } else if (tipo === "Ampliacion" && minJugadores && maxJugadores) {
+      jugadoresDisplay = `→ ${minJugadores}-${maxJugadores}`;
+    } else if (minJugadores && maxJugadores) {
+      jugadoresDisplay = `${minJugadores}-${maxJugadores}`;
+    }
     setGames((prev) =>
       prev.map((g) => {
         if (g.id !== gameId) return g;
         return {
           ...g,
           nombre: nombre || g.nombre,
+          ...(tipo ? { tipo } : {}),
           owners,
           ...(imageUrl !== undefined ? { imageUrl } : {}),
           ...(duracion !== undefined ? { duracion } : {}),
@@ -375,10 +383,11 @@ function App() {
       delete categoryMap[gameId];
     }
     saveCategory(gameId, category || null);
-    saveGameOverride(gameId, { owners, nombre, imageUrl, duracion, minJugadores, maxJugadores });
+    saveGameOverride(gameId, { owners, nombre, imageUrl, duracion, minJugadores, maxJugadores, tipo });
     if (selectedGame?.id === gameId) {
       setSelectedGame((prev) => ({
         ...prev, nombre: nombre || prev.nombre, owners,
+        ...(tipo ? { tipo } : {}),
         ...(imageUrl !== undefined ? { imageUrl } : {}),
         ...(duracion !== undefined ? { duracion } : {}),
         ...(minJugadores !== undefined ? { minJugadores } : {}),
