@@ -701,13 +701,15 @@ function App() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          <div className="space-y-2">
             {/* List header */}
-            <div className="grid grid-cols-[40px_1fr_100px_80px_100px_110px] sm:grid-cols-[44px_1fr_110px_90px_120px_130px] items-center gap-2 sm:gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+            <div className="grid grid-cols-[100px_1fr_140px_120px_60px_110px_130px] items-center gap-4 px-6 py-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
               <div />
               <button onClick={() => toggleListSort("name")} className="flex items-center gap-1.5 cursor-pointer hover:text-gray-600 transition-colors">
                 Juego {listSort.key === "name" && <ArrowUpDown size={11} className="text-orange-500" />}
               </button>
+              <div className="text-center">Jugadores</div>
+              <div className="text-center">Duración</div>
               <button onClick={() => toggleListSort("days")} className="flex items-center justify-center gap-1.5 cursor-pointer hover:text-gray-600 transition-colors">
                 Jugado hace {listSort.key === "days" && <ArrowUpDown size={11} className="text-orange-500" />}
               </button>
@@ -718,77 +720,98 @@ function App() {
               <div className="text-center">Owners</div>
             </div>
             {/* List rows */}
-            <div className="divide-y divide-gray-50">
-              {sortedFilteredGames.map((game) => {
-                const stats = gameStats[game.id] || {};
-                const cat = categoryMap[game.id];
-                const catColorMap = {
-                  "Party Game": "bg-pink-100 text-pink-600",
-                  "Estrategia": "bg-emerald-100 text-emerald-600",
-                  "Deducción Social": "bg-red-100 text-red-600",
-                  "Cooperativo": "bg-cyan-100 text-cyan-600",
-                  "Aventura": "bg-orange-100 text-orange-600",
-                  "Card Game": "bg-indigo-100 text-indigo-600",
-                };
-                return (
-                  <div key={game.id} onClick={() => setSelectedGame(game)}
-                    className="grid grid-cols-[40px_1fr_100px_80px_100px_110px] sm:grid-cols-[44px_1fr_110px_90px_120px_130px] items-center gap-2 sm:gap-3 px-4 py-3 hover:bg-orange-50/40 transition-colors cursor-pointer">
+            {sortedFilteredGames.map((game) => {
+              const stats = gameStats[game.id] || {};
+              const cat = categoryMap[game.id];
+              const catColorMap = {
+                "Party Game": "bg-pink-100 text-pink-600",
+                "Estrategia": "bg-emerald-100 text-emerald-600",
+                "Deducción Social": "bg-red-100 text-red-600",
+                "Cooperativo": "bg-cyan-100 text-cyan-600",
+                "Aventura": "bg-orange-100 text-orange-600",
+                "Card Game": "bg-indigo-100 text-indigo-600",
+              };
+              const ampliaciones = games.filter((g) => g.parentId === game.id && g.tipo === "Ampliacion");
+              let extendedMax = game.maxJugadores;
+              ampliaciones.forEach((a) => { if (a.maxJugadores > extendedMax) extendedMax = a.maxJugadores; });
+              const hasExtended = extendedMax > game.maxJugadores;
+              return (
+                <div key={game.id} onClick={() => setSelectedGame(game)}
+                  className="group grid grid-cols-[100px_1fr_140px_120px_60px_110px_130px] items-center gap-4 px-6 py-4 bg-[#f2f3f5] rounded-xl hover:bg-[#ebedf0] transition-all cursor-pointer">
+                  {/* Cover */}
+                  <div className="flex items-center justify-center h-20">
                     {game.imageUrl ? (
-                      <img src={game.imageUrl} alt="" className="w-10 h-12 sm:w-11 sm:h-14 object-contain rounded shrink-0" />
+                      <img src={game.imageUrl} alt={game.nombre}
+                        className="max-h-20 max-w-[90px] object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-[-2deg]"
+                        style={{ filter: "drop-shadow(3px 5px 5px rgba(0,0,0,0.2))" }}
+                        onMouseEnter={(e) => e.currentTarget.style.filter = "drop-shadow(6px 10px 10px rgba(0,0,0,0.4))"}
+                        onMouseLeave={(e) => e.currentTarget.style.filter = "drop-shadow(3px 5px 5px rgba(0,0,0,0.2))"} />
                     ) : (
-                      <div className="w-10 h-12 sm:w-11 sm:h-14 bg-gray-100 rounded flex items-center justify-center shrink-0 text-sm">🎲</div>
+                      <div className="w-16 h-20 bg-gray-200 rounded-lg flex items-center justify-center text-2xl opacity-30">🎲</div>
                     )}
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{game.nombre}</p>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
-                        <span className="flex items-center gap-1"><UsersIcon size={11} />{game.jugadoresDisplay}</span>
-                        <span className="flex items-center gap-1"><Clock size={11} />{game.duracion}</span>
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      {stats.daysSince !== null && stats.daysSince !== undefined ? (
-                        <span className={`text-sm font-semibold ${stats.daysSince <= 7 ? "text-emerald-500" : stats.daysSince <= 30 ? "text-gray-600" : "text-orange-500"}`}>
-                          {stats.daysSince === 0 ? "Hoy" : stats.daysSince === 1 ? "Ayer" : `${stats.daysSince} días`}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-orange-400 font-semibold">Nunca</span>
-                      )}
-                    </div>
-                    <div className="text-center">
-                      <span className="text-sm font-semibold text-gray-600">{stats.playCount || 0}</span>
-                    </div>
-                    <div className="flex justify-center">
-                      {cat ? (
-                        <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${catColorMap[cat] || "bg-gray-100 text-gray-500"}`}>{cat}</span>
-                      ) : (
-                        <span className="text-[10px] text-gray-300">—</span>
-                      )}
-                    </div>
-                    <div className="flex justify-center">
-                      <div className="flex items-center -space-x-2">
-                        {game.owners.slice(0, 4).map((owner, i) => {
-                          const ownerData = ownersData.find((o) => o.nombre === owner);
-                          return ownerData?.avatar ? (
-                            <img key={i} src={ownerData.avatar} alt={owner} title={owner}
-                              className="w-8 h-8 rounded-full object-cover border-2 border-white" />
-                          ) : (
-                            <span key={i} title={owner}
-                              className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-400">
-                              {owner.charAt(0)}
-                            </span>
-                          );
-                        })}
-                        {game.owners.length > 4 && (
-                          <span className="w-8 h-8 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-400">
-                            +{game.owners.length - 4}
+                  </div>
+                  {/* Name */}
+                  <div className="min-w-0">
+                    <p className="text-base font-bold text-gray-900 truncate">{game.nombre}</p>
+                  </div>
+                  {/* Players */}
+                  <div className="flex items-center justify-center gap-1.5 text-sm text-gray-500">
+                    <UsersIcon size={14} className="text-gray-400" />
+                    <span>{game.jugadoresDisplay}</span>
+                    {hasExtended && <span className="text-amber-500 font-bold">→{extendedMax}</span>}
+                  </div>
+                  {/* Duration */}
+                  <div className="flex items-center justify-center gap-1.5 text-sm text-gray-500">
+                    <Clock size={14} className="text-gray-400" />
+                    <span>{game.duracion}</span>
+                  </div>
+                  {/* Days since */}
+                  <div className="text-center">
+                    {stats.daysSince !== null && stats.daysSince !== undefined ? (
+                      <span className={`text-base font-bold ${stats.daysSince <= 7 ? "text-emerald-500" : stats.daysSince <= 30 ? "text-gray-600" : "text-orange-500"}`}>
+                        {stats.daysSince === 0 ? "Hoy" : stats.daysSince === 1 ? "Ayer" : `${stats.daysSince}d`}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-orange-400 font-bold">Nunca</span>
+                    )}
+                  </div>
+                  {/* Play count */}
+                  <div className="text-center">
+                    <span className="text-base font-bold text-gray-600">{stats.playCount || 0}</span>
+                  </div>
+                  {/* Category */}
+                  <div className="flex justify-center">
+                    {cat ? (
+                      <span className={`text-xs font-semibold px-3 py-1 rounded-full ${catColorMap[cat] || "bg-gray-100 text-gray-500"}`}>{cat}</span>
+                    ) : (
+                      <span className="text-xs text-gray-300">—</span>
+                    )}
+                  </div>
+                  {/* Owners */}
+                  <div className="flex justify-center">
+                    <div className="flex items-center -space-x-2.5">
+                      {game.owners.slice(0, 4).map((owner, i) => {
+                        const ownerData = ownersData.find((o) => o.nombre === owner);
+                        return ownerData?.avatar ? (
+                          <img key={i} src={ownerData.avatar} alt={owner} title={owner}
+                            className="w-10 h-10 rounded-full object-cover border-[3px] border-orange-400 shadow-sm" />
+                        ) : (
+                          <span key={i} title={owner}
+                            className="w-10 h-10 rounded-full bg-gray-200 border-[3px] border-orange-400 flex items-center justify-center text-sm font-bold text-gray-400">
+                            {owner.charAt(0)}
                           </span>
-                        )}
-                      </div>
+                        );
+                      })}
+                      {game.owners.length > 4 && (
+                        <span className="w-10 h-10 rounded-full bg-gray-100 border-[3px] border-orange-400 flex items-center justify-center text-xs font-bold text-gray-400">
+                          +{game.owners.length - 4}
+                        </span>
+                      )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </main>
