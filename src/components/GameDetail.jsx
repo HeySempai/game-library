@@ -325,7 +325,7 @@ export default function GameDetail({ game, expansions, allGames, category, onClo
                 <div className="h-px bg-gray-100 mb-5" />
 
                 {/* Session History */}
-                {game.tipo === "Juego Base" && (
+                {(game.tipo === "Juego Base" || game.parentId) && (
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-xs font-semibold text-gray-900 flex items-center gap-1.5">
