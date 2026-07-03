@@ -93,10 +93,13 @@ export async function saveRngDisabled(gameId, disabled) {
 }
 
 export async function saveCategory(gameId, category) {
-  const { error } = await supabase.from("game_config").upsert({
-    game_id: gameId, category: category || null,
-  }, { onConflict: "game_id" });
-  if (error) console.error("Error saving category:", error);
+  const { data } = await supabase.from("game_config").update({ category: category || null }).eq("game_id", gameId).select();
+  if (!data || data.length === 0) {
+    const { error } = await supabase.from("game_config").insert({
+      game_id: gameId, victory_type: "absolute_winner", category: category || null,
+    });
+    if (error) console.error("Error saving category:", error);
+  }
 }
 
 // Game overrides (owners, name, image for hardcoded games)
