@@ -1,14 +1,11 @@
 import { useState } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 
-export default function AddGameForm({ games, players, onAdd, onClose }) {
+export default function AddGameForm({ games, players, preloadOwner, onAdd, onClose }) {
   const baseGames = games.filter((g) => g.tipo === "Juego Base");
 
-  const preloadOwner = sessionStorage.getItem("preloadOwner");
-  
   const [form, setForm] = useState(() => {
     const owners = preloadOwner ? [preloadOwner] : [];
-    if (preloadOwner) sessionStorage.removeItem("preloadOwner");
     return {
       tipo: "Juego Base",
       nombre: "",

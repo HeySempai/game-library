@@ -59,6 +59,7 @@ function App() {
 
   const [selectedGame, setSelectedGame] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [addFormPreloadOwner, setAddFormPreloadOwner] = useState(null);
   const [showQuickPicker, setShowQuickPicker] = useState(false);
   const [showMarathon, setShowMarathon] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -809,7 +810,7 @@ function App() {
           onConfigChange={handleConfigChange}
         />
       )}
-      {showAddForm && <AddGameForm games={games} players={players} onAdd={handleAddGame} onClose={() => setShowAddForm(false)} />}
+      {showAddForm && <AddGameForm games={games} players={players} preloadOwner={addFormPreloadOwner} onAdd={handleAddGame} onClose={() => { setShowAddForm(false); setAddFormPreloadOwner(null); }} />}
       {showQuickPicker && <QuickPicker games={games} onClose={() => setShowQuickPicker(false)} />}
       {showMarathon && <RandomPicker games={games} onClose={() => setShowMarathon(false)} />}
       {showLeaderboard && <Leaderboard victories={victories} games={games} players={players} onAddVictory={handleAddVictory} onClose={() => setShowLeaderboard(false)} />}
@@ -824,16 +825,19 @@ function App() {
           onAddGame={(game, action, preloadOwner) => {
             if (action === "update" && game) {
               setGames((prev) => prev.map((g) => g.id === game.id ? game : g));
+              saveGameOverride(game.id, { owners: game.owners });
             } else if (action === "new") {
               setShowOwners(false);
+              setAddFormPreloadOwner(preloadOwner || null);
               setShowAddForm(true);
-              if (preloadOwner) sessionStorage.setItem("preloadOwner", preloadOwner);
             }
           }}
           onRemoveOwnerFromGame={(gameId, ownerName) => {
-            setGames((prev) => prev.map((g) =>
-              g.id === gameId ? { ...g, owners: g.owners.filter((o) => o !== ownerName) } : g
-            ));
+            const game = games.find((g) => g.id === gameId);
+            if (!game) return;
+            const newOwners = game.owners.filter((o) => o !== ownerName);
+            setGames((prev) => prev.map((g) => g.id === gameId ? { ...g, owners: newOwners } : g));
+            saveGameOverride(gameId, { owners: newOwners });
           }}
         />
       )}
