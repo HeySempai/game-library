@@ -42,6 +42,7 @@ export const categoryMap = {
   "mandalorian": "Aventura",
   "death-star": "Aventura",
   "survive": "Aventura",
+  "vantage": "Aventura",
 
   // Card Games / Dueling
   "boss-monster": "Card Game",

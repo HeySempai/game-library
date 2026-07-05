@@ -619,8 +619,8 @@ function App() {
             </div>
           )}
 
-          {/* Desktop filters - single line */}
-          <div className="hidden sm:flex items-center gap-x-5 mt-3 pt-3 border-t border-gray-100">
+          {/* Desktop filters */}
+          <div className="hidden sm:flex items-center flex-wrap gap-x-5 gap-y-2 mt-3 pt-3 border-t border-gray-100">
             {/* Owner avatars */}
             <div className="flex items-center gap-2 shrink-0">
               <UserCircle size={15} className="text-gray-400 shrink-0" />

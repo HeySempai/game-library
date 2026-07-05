@@ -91,6 +91,25 @@ const LEVEL_GAMES = {
   "the-mind": { maxByPlayers: { 2: 12, 3: 10, 4: 8 }, defaultMax: 12, label: "Level" },
 };
 
+const CUSTOM_FIELDS = {
+  "vantage": {
+    fields: [
+      {
+        key: "difficulty",
+        label: "Dificultad",
+        type: "select",
+        options: ["Muy fácil", "Fácil", "Normal", "Difícil"],
+      },
+      {
+        key: "victoryMode",
+        label: "Tipo de Victoria",
+        type: "select",
+        options: ["Misión", "Destino", "Misión y Destino"],
+      },
+    ],
+  },
+};
+
 export default function LogSessionForm({ game, victoryType, teamMode, players, allGames, onSave, onClose, editSession, editParticipants }) {
   const isEdit = !!editSession;
   const [date, setDate] = useState(() => {
@@ -99,10 +118,35 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   });
   const [durationMinutes, setDurationMinutes] = useState(editSession?.duration_minutes?.toString() || "");
-  const [notes, setNotes] = useState(editSession?.notes || "");
+  const [notes, setNotes] = useState(() => {
+    if (!editSession?.notes) return "";
+    if (!CUSTOM_FIELDS[game.id]) return editSession.notes;
+    // Strip custom field parts from notes
+    const fields = CUSTOM_FIELDS[game.id].fields;
+    const parts = editSession.notes.split(" | ").filter((part) => {
+      return !fields.some((f) => part.startsWith(f.label + ": "));
+    });
+    return parts.join(" | ");
+  });
   const [cooperativeWin, setCooperativeWin] = useState(editSession?.cooperative_win ?? null);
   const [isOfficial, setIsOfficial] = useState(editSession?.is_official ?? true);
   const levelConfig = LEVEL_GAMES[game.id] || null;
+  const customFieldsConfig = CUSTOM_FIELDS[game.id] || null;
+  const [customFields, setCustomFields] = useState(() => {
+    if (!customFieldsConfig) return {};
+    // Parse from editSession notes if editing
+    const parsed = {};
+    if (editSession?.notes) {
+      editSession.notes.split(" | ").forEach((part) => {
+        const [k, v] = part.split(": ");
+        if (k && v) {
+          const field = customFieldsConfig.fields.find((f) => f.label === k.trim());
+          if (field) parsed[field.key] = v.trim();
+        }
+      });
+    }
+    return parsed;
+  });
   const [level, setLevel] = useState(() => {
     if (!levelConfig || !editParticipants?.length) return null;
     const s = editParticipants[0]?.score;
@@ -331,6 +375,21 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
     }
     const origExp = editSession.expansions || [];
     if (selectedExpansions.length !== origExp.length || selectedExpansions.some((e) => !origExp.includes(e))) return true;
+    if (customFieldsConfig) {
+      const origParsed = {};
+      if (editSession.notes) {
+        editSession.notes.split(" | ").forEach((part) => {
+          const [k, v] = part.split(": ");
+          if (k && v) {
+            const field = customFieldsConfig.fields.find((f) => f.label === k.trim());
+            if (field) origParsed[field.key] = v.trim();
+          }
+        });
+      }
+      for (const f of customFieldsConfig.fields) {
+        if ((customFields[f.key] || "") !== (origParsed[f.key] || "")) return true;
+      }
+    }
     const validP = participants.filter((p) => p.playerName.trim());
     if (validP.length !== (editParticipants?.length || 0)) return true;
     for (let i = 0; i < validP.length; i++) {
@@ -342,7 +401,7 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
       if ((validP[i].team || "") !== (orig.team || "")) return true;
     }
     return false;
-  }, [isEdit, date, durationMinutes, notes, cooperativeWin, isOfficial, level, participants, selectedExpansions, editSession, editParticipants, levelConfig]);
+  }, [isEdit, date, durationMinutes, notes, cooperativeWin, isOfficial, level, participants, selectedExpansions, customFields, editSession, editParticipants, levelConfig, customFieldsConfig]);
 
   // Already-selected player names
   const usedNames = participants.map((p) => p.playerName).filter(Boolean);
@@ -444,7 +503,16 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
         durationMinutes: durationMinutes ? parseInt(durationMinutes) : null,
         victoryType: effectiveVictoryType,
         cooperativeWin: effectiveVictoryType === "cooperative" ? finalCoopWin : null,
-        notes: notes.trim() || null,
+        notes: (() => {
+          const parts = [];
+          if (customFieldsConfig) {
+            customFieldsConfig.fields.forEach((f) => {
+              if (customFields[f.key]) parts.push(`${f.label}: ${customFields[f.key]}`);
+            });
+          }
+          if (notes.trim()) parts.push(notes.trim());
+          return parts.length > 0 ? parts.join(" | ") : null;
+        })(),
         isOfficial: isOfficial,
         expansions: selectedExpansions,
       },
@@ -564,6 +632,28 @@ export default function LogSessionForm({ game, victoryType, teamMode, players, a
                   💀 Derrota
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Custom fields (e.g. Vantage difficulty/victory mode) */}
+          {customFieldsConfig && (
+            <div className="space-y-3">
+              {customFieldsConfig.fields.map((field) => (
+                <div key={field.key}>
+                  <label className="block text-xs font-medium text-gray-500 mb-2">{field.label}</label>
+                  <div className="flex flex-wrap gap-2">
+                    {field.options.map((opt) => (
+                      <button key={opt} type="button"
+                        onClick={() => setCustomFields((prev) => ({ ...prev, [field.key]: prev[field.key] === opt ? undefined : opt }))}
+                        className={`px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                          customFields[field.key] === opt
+                            ? "bg-orange-500 text-white"
+                            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                        }`}>{opt}</button>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
