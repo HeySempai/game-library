@@ -39,6 +39,8 @@ export const rulesMap = {
   // === ROOT ===
   "root":                      { name: "Root — The Law of Root",              pdf: `${R}/Root-Base-Law.pdf` },
   "root-the-riverfolk-expansion": { name: "Root: Riverfolk — Learning to Play", pdf: `${R}/Root-Riverfolk-Learn-to-Play.pdf` },
+  // === COMMAND OF NATURE ===
+  "con-base":          { name: "Command of Nature — Rules",         pdf: `${R}/Command-of-Nature-Rules-base.pdf` },
   // === OTROS ===
   "exploding-kittens-party": { name: "Exploding Kittens Party Pack — Reglas", pdf: `${R}/exploding-kittes-party-pack-rules.pdf` },
   "polilla":                 { name: "Polilla Tramposa — Reglas",             pdf: `${R}/rules-polilla-tramposa.pdf` },
