@@ -22,6 +22,8 @@ export const rulesMap = {
     { name: "Wingspan — Automa",    pdf: `${R}/458458544-WS-AutomaRules-r5.pdf` },
     { name: "Wingspan — Apéndice", pdf: `${R}/662514300-WS-Appendix-r17.pdf` },
   ],
+  // === WYRMSPAN ===
+  "wyrmspan-base":     { name: "Wyrmspan — Reglas",                pdf: `${R}/Wyr_Rulebook_eng_compressed.pdf` },
   // === 7 WONDERS ===
   "7w-base": [
     { name: "7 Wonders — Reglamento",    pdf: `${R}/7-Wonders-Base-Reglamento.pdf` },
